@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 AUTHOR = 'Nightblade'
 SITENAME = 'Adventures in Python'
-SITEURL = 'http://nightblade9.github.io/adventures-in-python'
+SITEURL = 'https://nightblade9.github.io/adventures-in-python'
 PATH = 'content'
 
 TIMEZONE = 'Canada/Eastern'
