@@ -4,30 +4,31 @@ from __future__ import unicode_literals
 
 AUTHOR = 'Nightblade'
 SITENAME = 'Adventures in Python'
-SITEURL = ''
-
+SITEURL = 'http://nightblade9.github.io/adventures-in-python'
 PATH = 'content'
 
 TIMEZONE = 'Canada/Eastern'
 
 DEFAULT_LANG = 'English'
 
+THEME = 'notmyidea'
+USE_FOLDER_AS_CATEGORY = False
+# Permalink structure
+ARTICLE_SAVE_AS = '{date:%Y}/{slug}.html'
+ARTICLE_URL = ARTICLE_SAVE_AS
+
 # Feed generation is usually not desired when developing
-FEED_ALL_ATOM = None
+FEED_ALL_ATOM = "atom.xml"
 CATEGORY_FEED_ATOM = None
 TRANSLATION_FEED_ATOM = None
 AUTHOR_FEED_ATOM = None
 AUTHOR_FEED_RSS = None
 
 # Blogroll
-LINKS = (('Pelican', 'http://getpelican.com/'),
-         ('Python.org', 'http://python.org/'),
-         ('Jinja2', 'http://jinja.pocoo.org/'),
-         ('You can modify those links in your config file', '#'),)
+LINKS = (("Profile", "https://github.com/nightblade9"),)
 
 # Social widget
-SOCIAL = (('You can add links in your config file', '#'),
-          ('Another social link', '#'),)
+SOCIAL = (('Twitter', 'https://twitter.com/nightblade99'),)
 
 DEFAULT_PAGINATION = False
 
