@@ -2,7 +2,7 @@
 <html lang="english">
 <head>
         <meta charset="utf-8" />
-        <title>Adventures in Python</title>
+        <title>Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</title>
         <link rel="stylesheet" href="https://nightblade9.github.io/adventures-in-python/theme/css/main.css" />
         <link href="https://nightblade9.github.io/adventures-in-python/atom.xml" type="application/atom+xml" rel="alternate" title="Adventures in Python Atom Feed" />
 
@@ -16,13 +16,18 @@
                 <h1><a href="https://nightblade9.github.io/adventures-in-python/">Adventures in Python </a></h1>
                 <nav><ul>
                     <li><a href="https://nightblade9.github.io/adventures-in-python/pages/about.html">About</a></li>
-                    <li><a href="https://nightblade9.github.io/adventures-in-python/category/misc.html">misc</a></li>
+                    <li class="active"><a href="https://nightblade9.github.io/adventures-in-python/category/misc.html">misc</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="https://nightblade9.github.io/adventures-in-python/2018/creating-a-roguelike-in-python-tdl-part-1.html" rel="bookmark"
+           title="Permalink to Creating a Roguelike in Python + TDL, Part 1: Entity-Component System">Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</a></h1>
+    </header>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="https://nightblade9.github.io/adventures-in-python/2018/creating-a-roguelike-in-python-tdl-part-1.html">Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</a></h1>
+    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2018-04-01T00:00:00-04:00">
                 Published: Sun 01 April 2018
@@ -33,7 +38,7 @@
         </address>
 <p>In <a href="https://nightblade9.github.io/adventures-in-python/category/misc.html">misc</a>.</p>
 
-</footer><!-- /.post-info --><p>In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being <code>libtcod</code>, which is more "C++ic" than Pythonic).</p>
+</footer><!-- /.post-info -->      <p>In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being <code>libtcod</code>, which is more "C++ic" than Pythonic).</p>
 <p>This series aims to build on top of <a href="http://www.roguebasin.com/index.php?title=Roguelike_Tutorial,_using_python3%2Btdl">this excellent series on RogueBasin</a>, which walks you from basics to having a complete, shippable, small roguelike; the main additional benefit we want to confer from this tutorial is <em>code quality</em>.</p>
 <p>The RogueBasin roguelike code, while excellent in terms of functionality, includes some poor design choices -- probably because the goal was a) make something fast that works, and b) put everything in one file so it's easy to copy-paste. As a result, it doesn't provide a solid foundation for extension -- you quickly get bogged down with complexity.</p>
 <p>Specifically, we plan to:</p>
@@ -121,8 +126,11 @@
 </pre></div>
 
 
-<p>With this, we can be sure our Entity class works as expected. In part two, we'll create a "Hello World" TDL application where we get the main UI window up, and start detecting/processing input so we can quit/terminate our game.</p>                </article>
-            </aside><!-- /#featured -->
+<p>With this, we can be sure our Entity class works as expected. In part two, we'll create a "Hello World" TDL application where we get the main UI window up, and start detecting/processing input so we can quit/terminate our game.</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
         <section id="extras" class="body">
                 <div class="blogroll">
                         <h2>links</h2>
