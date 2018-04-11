@@ -60,7 +60,7 @@ class Entity:
 
 That's it! We don't even need a `Component` class, because entities can technically use any class/instance/object as a component.
 
-We also only need a simple test: that we can `get` a `set` component, and that `has` returns `True` if the component exists (and `False` otherwise). We should also test that `set` overwrites the previous component. 
+We also only need a simple test: that we can `get` a component which was `set`, and that `has` returns `True` if the component exists (and `False` otherwise). We should also test that `set` overwrites the previous component. 
 
 Tests (`pytest` tests):
 
