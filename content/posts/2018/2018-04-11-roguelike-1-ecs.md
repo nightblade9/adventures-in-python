@@ -18,7 +18,7 @@ Without further ado, let's dive into the first part: writing our entity-componen
 
 # The Simplest Entity-Component System
 
-If you haven't heard about them before, you can read [this classic post about Entity-Component Systems](http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/). In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small entities.
+If you haven't heard about them before, you can read [this classic post about Entity-Component Systems](http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/). In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small, independent components.
 
 While there are many, *many* ways to write an ECS, ours will follow the design of [CraftyJS](http://craftyjs.com), quite possibly one of the best ECS libraries ever:
 
