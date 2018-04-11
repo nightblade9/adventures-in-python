@@ -10,7 +10,7 @@
 &lt;/ul&gt;
 &lt;p&gt;Without further ado, let's dive into the first part: writing our entity-component system.&lt;/p&gt;
 &lt;h1&gt;The Simplest Entity-Component System&lt;/h1&gt;
-&lt;p&gt;If you haven't heard about them before, you can read &lt;a href="http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/"&gt;this classic post about Entity-Component Systems&lt;/a&gt;. In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small entities.&lt;/p&gt;
+&lt;p&gt;If you haven't heard about them before, you can read &lt;a href="http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/"&gt;this classic post about Entity-Component Systems&lt;/a&gt;. In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small, independent components.&lt;/p&gt;
 &lt;p&gt;While there are many, &lt;em&gt;many&lt;/em&gt; ways to write an ECS, ours will follow the design of &lt;a href="http://craftyjs.com"&gt;CraftyJS&lt;/a&gt;, quite possibly one of the best ECS libraries ever:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;Components are small, reusable classes that encapsulate code and data (eg. &lt;code&gt;HealthComponent&lt;/code&gt; with &lt;code&gt;get_hurt(damage)&lt;/code&gt;, &lt;code&gt;die()&lt;/code&gt;, &lt;code&gt;current_health&lt;/code&gt;, etc.)&lt;/li&gt;

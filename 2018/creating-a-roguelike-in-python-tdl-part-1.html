@@ -49,7 +49,7 @@
 </ul>
 <p>Without further ado, let's dive into the first part: writing our entity-component system.</p>
 <h1>The Simplest Entity-Component System</h1>
-<p>If you haven't heard about them before, you can read <a href="http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/">this classic post about Entity-Component Systems</a>. In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small entities.</p>
+<p>If you haven't heard about them before, you can read <a href="http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/">this classic post about Entity-Component Systems</a>. In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small, independent components.</p>
 <p>While there are many, <em>many</em> ways to write an ECS, ours will follow the design of <a href="http://craftyjs.com">CraftyJS</a>, quite possibly one of the best ECS libraries ever:</p>
 <ul>
 <li>Components are small, reusable classes that encapsulate code and data (eg. <code>HealthComponent</code> with <code>get_hurt(damage)</code>, <code>die()</code>, <code>current_health</code>, etc.)</li>
