@@ -46,7 +46,7 @@
 
 
 &lt;p&gt;That's it! We don't even need a &lt;code&gt;Component&lt;/code&gt; class, because entities can technically use any class/instance/object as a component.&lt;/p&gt;
-&lt;p&gt;We also only need a simple test: that we can &lt;code&gt;get&lt;/code&gt; a &lt;code&gt;set&lt;/code&gt; component, and that &lt;code&gt;has&lt;/code&gt; returns &lt;code&gt;True&lt;/code&gt; if the component exists (and &lt;code&gt;False&lt;/code&gt; otherwise). We should also test that &lt;code&gt;set&lt;/code&gt; overwrites the previous component. &lt;/p&gt;
+&lt;p&gt;We also only need a simple test: that we can &lt;code&gt;get&lt;/code&gt; a component which was &lt;code&gt;set&lt;/code&gt;, and that &lt;code&gt;has&lt;/code&gt; returns &lt;code&gt;True&lt;/code&gt; if the component exists (and &lt;code&gt;False&lt;/code&gt; otherwise). We should also test that &lt;code&gt;set&lt;/code&gt; overwrites the previous component. &lt;/p&gt;
 &lt;p&gt;Tests (&lt;code&gt;pytest&lt;/code&gt; tests):&lt;/p&gt;
 &lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;ecs.entity&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;
 

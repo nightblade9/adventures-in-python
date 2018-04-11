@@ -85,7 +85,7 @@
 
 
 <p>That's it! We don't even need a <code>Component</code> class, because entities can technically use any class/instance/object as a component.</p>
-<p>We also only need a simple test: that we can <code>get</code> a <code>set</code> component, and that <code>has</code> returns <code>True</code> if the component exists (and <code>False</code> otherwise). We should also test that <code>set</code> overwrites the previous component. </p>
+<p>We also only need a simple test: that we can <code>get</code> a component which was <code>set</code>, and that <code>has</code> returns <code>True</code> if the component exists (and <code>False</code> otherwise). We should also test that <code>set</code> overwrites the previous component. </p>
 <p>Tests (<code>pytest</code> tests):</p>
 <div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ecs.entity</span> <span class="kn">import</span> <span class="n">Entity</span>
 
