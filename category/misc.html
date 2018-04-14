@@ -22,10 +22,10 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</a></h1>
+                    <h1 class="entry-title"><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html">Creating a Roguelike in Python + TDL, Part 2: Basic Movement</a></h1>
 <footer class="post-info">
-        <abbr class="published" title="2018-04-01T00:00:00-04:00">
-                Published: Sun 01 April 2018
+        <abbr class="published" title="2018-04-13T00:00:00-04:00">
+                Published: Fri 13 April 2018
         </abbr>
 
         <address class="vcard author">
@@ -33,95 +33,122 @@
         </address>
 <p>In <a href="https://nightblade9.github.io/python-zone/category/misc.html">misc</a>.</p>
 
-</footer><!-- /.post-info --><p>In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being <code>libtcod</code>, which is more "C++ic" than Pythonic).</p>
-<p>This series aims to build on top of <a href="http://www.roguebasin.com/index.php?title=Roguelike_Tutorial,_using_python3%2Btdl">this excellent series on RogueBasin</a>, which walks you from basics to having a complete, shippable, small roguelike; the main additional benefit we want to confer from this tutorial is <em>code quality</em>.</p>
-<p>The RogueBasin roguelike code, while excellent in terms of functionality, includes some poor design choices -- probably because the goal was a) make something fast that works, and b) put everything in one file so it's easy to copy-paste. As a result, it doesn't provide a solid foundation for extension -- you quickly get bogged down with complexity.</p>
-<p>Specifically, we plan to:</p>
-<ul>
-<li>Use an entity-component system instead of a (mostly) monolithic <code>GameObject</code> base class</li>
-<li>Avoid the use of global variables completely</li>
-<li>Isolate TDL code as much as possible, so that our code is more testable</li>
-</ul>
-<p>Without further ado, let's dive into the first part: writing our entity-component system.</p>
-<h1>The Simplest Entity-Component System</h1>
-<p>If you haven't heard about them before, you can read <a href="http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/">this classic post about Entity-Component Systems</a>. In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small, independent components.</p>
-<p>While there are many, <em>many</em> ways to write an ECS, ours will follow the design of <a href="http://craftyjs.com">CraftyJS</a>, quite possibly one of the best ECS libraries ever:</p>
-<ul>
-<li>Components are small, reusable classes that encapsulate code and data (eg. <code>HealthComponent</code> with <code>get_hurt(damage)</code>, <code>die()</code>, <code>current_health</code>, etc.)</li>
-<li>Entities are classes that implement custom logic that spans components</li>
-</ul>
-<p>With this in mind, let's create our base class: the entity.</p>
-<h1>The Entity Class</h1>
-<p>The Entity class has a few simple requrements:</p>
-<ul>
-<li>A user can <code>set(component)</code> a component, and the entity will keep that. (The entity has, at most, one component of each type/class.)</li>
-<li>A user can <code>get(clazz)</code> a component, specifying the class/type, and will get the actual component</li>
-<li>A user can check if an entity has a component of a specific type/class via <code>has(clazz)</code></li>
-</ul>
-<p>Internally, we can store components in a dictionary that maps components by type to instance.  Here's what that looks like:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Entity</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">components</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">Entity</span><span class="o">.</span><span class="n">all_entities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+</footer><!-- /.post-info --><p>This is the second part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">part one</a>, we created our basic <code>Entity</code> class with the few methods it needs (<code>get</code>, <code>set</code>, <code>has</code>) and some unit tests. In this part, we're going to initialize out UI, draw our player on-screen, and have him move around when we use the arrow keys.</p>
+<h1>Setting Up TDL</h1>
+<p>TDL is complicated. Accordingly, we're going to start with the simplest possible "hello world" TDL: drawing the screen, processing input, and terminating when the player presses <code>ESC</code> or <code>q</code>.</p>
+<p>Here's the code for creating a basic TDL app:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
 
-        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">component</span><span class="p">):</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">component</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
+            <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
+            <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
+            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;ESCAPE&quot;</span> <span class="ow">or</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s1">&#39;q&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;You pressed {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_pressed</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clazz</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="n">clazz</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clazz</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">clazz</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
 </pre></div>
 
 
-<p>That's it! We don't even need a <code>Component</code> class, because entities can technically use any class/instance/object as a component.</p>
-<p>We also only need a simple test: that we can <code>get</code> a component which was <code>set</code>, and that <code>has</code> returns <code>True</code> if the component exists (and <code>False</code> otherwise). We should also test that <code>set</code> overwrites the previous component. </p>
-<p>Tests (<code>pytest</code> tests):</p>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ecs.entity</span> <span class="kn">import</span> <span class="n">Entity</span>
-
-<span class="k">class</span> <span class="nc">TestEntity</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">test_getter_gets_set_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">e</span> <span class="o">=</span> <span class="n">Entity</span><span class="p">()</span>
-        <span class="n">expected</span> <span class="o">=</span> <span class="n">IntComponent</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">expected</span><span class="p">)</span>
-
-        <span class="n">actual</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">IntComponent</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">actual</span> <span class="o">==</span> <span class="n">expected</span>
-
-    <span class="k">def</span> <span class="nf">test_set_overwrites_previous_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">e</span> <span class="o">=</span> <span class="n">Entity</span><span class="p">()</span>
-        <span class="n">expected</span> <span class="o">=</span> <span class="n">IntComponent</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
-
-        <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">IntComponent</span><span class="p">(</span><span class="mi">1888</span><span class="p">))</span>
-        <span class="n">e</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">expected</span><span class="p">)</span>
-
-        <span class="n">actual</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">IntComponent</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="n">actual</span> <span class="o">==</span> <span class="n">expected</span>
-
-    <span class="k">def</span> <span class="nf">test_has_retruns_true_if_component_exists</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Note: doesn&#39;t work for subclasses of the component</span>
-        <span class="n">e</span> <span class="o">=</span> <span class="n">Entity</span><span class="p">(</span><span class="n">IntComponent</span><span class="p">(</span><span class="mi">77</span><span class="p">))</span>
-        <span class="k">assert</span> <span class="n">e</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">IntComponent</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span>
-        <span class="k">assert</span> <span class="n">e</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">StringComponent</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">False</span>
-
-
-<span class="k">class</span> <span class="nc">IntComponent</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
-
-
-<span class="k">class</span> <span class="nc">StringComponent</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<p>If you run this code, you'll see something like this (console in the background):</p>
+<p><img alt="screenshot" src="https://i.imgur.com/sVbghcT.png"></p>
+<p>Now that we can trap keyboard input (and arrow keys), we can start to work on our <code>Player</code> class.</p>
+<h1>Player Entity</h1>
+<p>In an ECS like ours (inspired by CraftyJS!), a player would be an <code>Entity</code>, which is made up of a bunch of <code>components</code>. For now, we'll just use a tuple of coordinates to handle this; in the future, we'll turn it into an <em>actual</em> <code>Player</code> entity, complete with display and keyboard-processing components.</p>
+<p>High-level steps:</p>
+<ul>
+<li>Create a tuple to store <code>(player_x, player_y)</code>.</li>
+<li>If the player presses an arrow key, update one of the two values appropriately.</li>
+<li>Draw the player onto the screen.</li>
+</ul>
+<p>Storing the values is trivial; for the input, we can process input, like so:</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
+    <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
+<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
+    <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
+    <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
+<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
+    <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
 </pre></div>
 
 
-<p>With this, we can be sure our Entity class works as expected. In part two, we'll create a "Hello World" TDL application where we get the main UI window up, and start detecting/processing input so we can quit/terminate our game.</p>                </article>
+<p>To draw the player, we need a little more work, and we need to learn a bit more about TDL.</p>
+<p>TDL has a <code>console</code> concept, which represents, well, an ASCII-like console. There's also the <code>root_console</code>, which is the one which draws onto the screen.</p>
+<p>To start, we need to keep a reference to the root console; that's the one we draw to. We can also draw to it by calling <code>root_console.draw_char(player_x, player_y, '@', (255, 255, 255))</code>. This draws a white '@' at <code>(player_x, player_y)</code>.</p>
+<p>Our total code looks like this:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
+
+<span class="kn">import</span> <span class="nn">tdl</span>
+
+<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">root_console</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span> <span class="c1"># keep a reference to self.console</span>
+        <span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span> <span class="o">=</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
+            <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
+            <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
+
+            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
+                <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
+                <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
+                <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
+                <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+
+<p>Run it, and there's a problem! The player never draws! Astute observers might notice that the screen only draws <em>once you switch tabs and switch back.</em> What's going on?</p>
+<p>It turns out TDL buffers draw calls for performance (which makes sense). What we need to do, is force TDL to flush the output, by calling <code>tdl.flush()</code>.</p>
+<p>Now, our player moves! Hurrah! But there's another problem: he leaves behind <em>a trail of <code>@</code> characters.</em> </p>
+<p><img alt="screenshot" src="https://i.imgur.com/1jRw1e4.png"></p>
+<p>It turns out TDL (literally) only draws the changed character, and doesn't redraw anything previously drawn, or clear the previous player drawn onto the console.</p>
+<p>To fix this, we can call <code>root_console.clear</code> before drawing the player. And everything works as expected!</p>
+<p>Whew, that's a lot! Unfortunately, our code is starting to look positively spaghetti-like (almost to the point of global variables) -- we can't easily extract our user input input into a method, nor test it.</p>
+<p>In part 3, we'll step back and refactor this into a proper ECS architecture before foraging onward.</p>
+<h1>Final Code</h1>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
+
+<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">root_console</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span> <span class="c1"># keep a reference to self.console</span>
+        <span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span> <span class="o">=</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
+            <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
+            <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
+
+            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
+                <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
+                <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
+                <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
+                <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">root_console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+            <span class="n">tdl</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>                </article>
             </aside><!-- /#featured -->
                 <section id="content" class="body">
                     <h1>Other articles</h1>
@@ -130,8 +157,8 @@
 
             <li><article class="hentry">
                 <header>
-                    <h1><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html" rel="bookmark"
-                           title="Permalink to Creating a Roguelike in Python + TDL, Part 2: Basic Movement">Creating a Roguelike in Python + TDL, Part 2: Basic Movement</a></h1>
+                    <h1><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html" rel="bookmark"
+                           title="Permalink to Creating a Roguelike in Python + TDL, Part 1: Entity-Component System">Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</a></h1>
                 </header>
 
                 <div class="entry-content">
@@ -145,8 +172,8 @@
         </address>
 <p>In <a href="https://nightblade9.github.io/python-zone/category/misc.html">misc</a>.</p>
 
-</footer><!-- /.post-info -->                <p>This is the second part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">part one</a>, we created our basic <code>Entity</code> class with the few methods it needs (<code>get</code>, <code>set</code>, <code>has</code>) and some unit tests. In this part, we're going to initialize out UI, draw …</p>
-                <a class="readmore" href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html">read more</a>
+</footer><!-- /.post-info -->                <p>In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being <code>libtcod</code>, which is more "C++ic" than …</p>
+                <a class="readmore" href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">read more</a>
                 </div><!-- /.entry-content -->
             </article></li>
                 </ol><!-- /#posts-list -->

@@ -1,93 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Python Zone</title><link href="https://nightblade9.github.io/python-zone/" rel="alternate"></link><link href="https://nightblade9.github.io/python-zone/atom.xml" rel="self"></link><id>https://nightblade9.github.io/python-zone/</id><updated>2018-04-01T00:00:00-04:00</updated><entry><title>Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</title><link href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html" rel="alternate"></link><published>2018-04-01T00:00:00-04:00</published><updated>2018-04-01T00:00:00-04:00</updated><author><name>Nightblade</name></author><id>tag:nightblade9.github.io,2018-04-01:/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html</id><summary type="html">&lt;p&gt;In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being &lt;code&gt;libtcod&lt;/code&gt;, which is more "C++ic" than …&lt;/p&gt;</summary><content type="html">&lt;p&gt;In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being &lt;code&gt;libtcod&lt;/code&gt;, which is more "C++ic" than Pythonic).&lt;/p&gt;
-&lt;p&gt;This series aims to build on top of &lt;a href="http://www.roguebasin.com/index.php?title=Roguelike_Tutorial,_using_python3%2Btdl"&gt;this excellent series on RogueBasin&lt;/a&gt;, which walks you from basics to having a complete, shippable, small roguelike; the main additional benefit we want to confer from this tutorial is &lt;em&gt;code quality&lt;/em&gt;.&lt;/p&gt;
-&lt;p&gt;The RogueBasin roguelike code, while excellent in terms of functionality, includes some poor design choices -- probably because the goal was a) make something fast that works, and b) put everything in one file so it's easy to copy-paste. As a result, it doesn't provide a solid foundation for extension -- you quickly get bogged down with complexity.&lt;/p&gt;
-&lt;p&gt;Specifically, we plan to:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Use an entity-component system instead of a (mostly) monolithic &lt;code&gt;GameObject&lt;/code&gt; base class&lt;/li&gt;
-&lt;li&gt;Avoid the use of global variables completely&lt;/li&gt;
-&lt;li&gt;Isolate TDL code as much as possible, so that our code is more testable&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Without further ado, let's dive into the first part: writing our entity-component system.&lt;/p&gt;
-&lt;h1&gt;The Simplest Entity-Component System&lt;/h1&gt;
-&lt;p&gt;If you haven't heard about them before, you can read &lt;a href="http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/"&gt;this classic post about Entity-Component Systems&lt;/a&gt;. In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small, independent components.&lt;/p&gt;
-&lt;p&gt;While there are many, &lt;em&gt;many&lt;/em&gt; ways to write an ECS, ours will follow the design of &lt;a href="http://craftyjs.com"&gt;CraftyJS&lt;/a&gt;, quite possibly one of the best ECS libraries ever:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Components are small, reusable classes that encapsulate code and data (eg. &lt;code&gt;HealthComponent&lt;/code&gt; with &lt;code&gt;get_hurt(damage)&lt;/code&gt;, &lt;code&gt;die()&lt;/code&gt;, &lt;code&gt;current_health&lt;/code&gt;, etc.)&lt;/li&gt;
-&lt;li&gt;Entities are classes that implement custom logic that spans components&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;With this in mind, let's create our base class: the entity.&lt;/p&gt;
-&lt;h1&gt;The Entity Class&lt;/h1&gt;
-&lt;p&gt;The Entity class has a few simple requrements:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;A user can &lt;code&gt;set(component)&lt;/code&gt; a component, and the entity will keep that. (The entity has, at most, one component of each type/class.)&lt;/li&gt;
-&lt;li&gt;A user can &lt;code&gt;get(clazz)&lt;/code&gt; a component, specifying the class/type, and will get the actual component&lt;/li&gt;
-&lt;li&gt;A user can check if an entity has a component of a specific type/class via &lt;code&gt;has(clazz)&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Internally, we can store components in a dictionary that maps components by type to instance.  Here's what that looks like:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Entity&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;components&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;components&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
-        &lt;span class="n"&gt;Entity&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;all_entities&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;component&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;components&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-            &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;component&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;component&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;component&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;components&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;component&lt;/span&gt;
-
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;clazz&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;components&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;clazz&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
-
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;has&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;clazz&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;clazz&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;That's it! We don't even need a &lt;code&gt;Component&lt;/code&gt; class, because entities can technically use any class/instance/object as a component.&lt;/p&gt;
-&lt;p&gt;We also only need a simple test: that we can &lt;code&gt;get&lt;/code&gt; a component which was &lt;code&gt;set&lt;/code&gt;, and that &lt;code&gt;has&lt;/code&gt; returns &lt;code&gt;True&lt;/code&gt; if the component exists (and &lt;code&gt;False&lt;/code&gt; otherwise). We should also test that &lt;code&gt;set&lt;/code&gt; overwrites the previous component. &lt;/p&gt;
-&lt;p&gt;Tests (&lt;code&gt;pytest&lt;/code&gt; tests):&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;ecs.entity&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;
-
-&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TestEntity&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_getter_gets_set_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-        &lt;span class="n"&gt;expected&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;13&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;expected&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-        &lt;span class="n"&gt;actual&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;actual&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;expected&lt;/span&gt;
-
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_set_overwrites_previous_value&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-        &lt;span class="n"&gt;expected&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;13&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-        &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1888&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-        &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;expected&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-
-        &lt;span class="n"&gt;actual&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;actual&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;expected&lt;/span&gt;
-
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_has_retruns_true_if_component_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="c1"&gt;# Note: doesn&amp;#39;t work for subclasses of the component&lt;/span&gt;
-        &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;77&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
-        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;has&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;
-        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;has&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;StringComponent&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="bp"&gt;False&lt;/span&gt;
-
-
-&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
-
-
-&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;StringComponent&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
-    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-
-&lt;p&gt;With this, we can be sure our Entity class works as expected. In part two, we'll create a "Hello World" TDL application where we get the main UI window up, and start detecting/processing input so we can quit/terminate our game.&lt;/p&gt;</content></entry><entry><title>Creating a Roguelike in Python + TDL, Part 2: Basic Movement</title><link href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html" rel="alternate"></link><published>2018-04-01T00:00:00-04:00</published><updated>2018-04-01T00:00:00-04:00</updated><author><name>Nightblade</name></author><id>tag:nightblade9.github.io,2018-04-01:/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html</id><summary type="html">&lt;p&gt;This is the second part of our series for creating a Python roguelike with TDL and an ECS. In &lt;a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html"&gt;part one&lt;/a&gt;, we created our basic &lt;code&gt;Entity&lt;/code&gt; class with the few methods it needs (&lt;code&gt;get&lt;/code&gt;, &lt;code&gt;set&lt;/code&gt;, &lt;code&gt;has&lt;/code&gt;) and some unit tests. In this part, we're going to initialize out UI, draw …&lt;/p&gt;</summary><content type="html">&lt;p&gt;This is the second part of our series for creating a Python roguelike with TDL and an ECS. In &lt;a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html"&gt;part one&lt;/a&gt;, we created our basic &lt;code&gt;Entity&lt;/code&gt; class with the few methods it needs (&lt;code&gt;get&lt;/code&gt;, &lt;code&gt;set&lt;/code&gt;, &lt;code&gt;has&lt;/code&gt;) and some unit tests. In this part, we're going to initialize out UI, draw our player on-screen, and have him move around when we use the arrow keys.&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Python Zone</title><link href="https://nightblade9.github.io/python-zone/" rel="alternate"></link><link href="https://nightblade9.github.io/python-zone/atom.xml" rel="self"></link><id>https://nightblade9.github.io/python-zone/</id><updated>2018-04-13T00:00:00-04:00</updated><entry><title>Creating a Roguelike in Python + TDL, Part 2: Basic Movement</title><link href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html" rel="alternate"></link><published>2018-04-13T00:00:00-04:00</published><updated>2018-04-13T00:00:00-04:00</updated><author><name>Nightblade</name></author><id>tag:nightblade9.github.io,2018-04-13:/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html</id><summary type="html">&lt;p&gt;This is the second part of our series for creating a Python roguelike with TDL and an ECS. In &lt;a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html"&gt;part one&lt;/a&gt;, we created our basic &lt;code&gt;Entity&lt;/code&gt; class with the few methods it needs (&lt;code&gt;get&lt;/code&gt;, &lt;code&gt;set&lt;/code&gt;, &lt;code&gt;has&lt;/code&gt;) and some unit tests. In this part, we're going to initialize out UI, draw …&lt;/p&gt;</summary><content type="html">&lt;p&gt;This is the second part of our series for creating a Python roguelike with TDL and an ECS. In &lt;a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html"&gt;part one&lt;/a&gt;, we created our basic &lt;code&gt;Entity&lt;/code&gt; class with the few methods it needs (&lt;code&gt;get&lt;/code&gt;, &lt;code&gt;set&lt;/code&gt;, &lt;code&gt;has&lt;/code&gt;) and some unit tests. In this part, we're going to initialize out UI, draw our player on-screen, and have him move around when we use the arrow keys.&lt;/p&gt;
 &lt;h1&gt;Setting Up TDL&lt;/h1&gt;
 &lt;p&gt;TDL is complicated. Accordingly, we're going to start with the simplest possible "hello world" TDL: drawing the screen, processing input, and terminating when the player presses &lt;code&gt;ESC&lt;/code&gt; or &lt;code&gt;q&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;Here's the code for creating a basic TDL app:&lt;/p&gt;
@@ -202,4 +114,92 @@
 
 &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="vm"&gt;__name__&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
     &lt;span class="n"&gt;Main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;run&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;</content></entry></feed>
+&lt;/pre&gt;&lt;/div&gt;</content></entry><entry><title>Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</title><link href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html" rel="alternate"></link><published>2018-04-01T00:00:00-04:00</published><updated>2018-04-01T00:00:00-04:00</updated><author><name>Nightblade</name></author><id>tag:nightblade9.github.io,2018-04-01:/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html</id><summary type="html">&lt;p&gt;In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being &lt;code&gt;libtcod&lt;/code&gt;, which is more "C++ic" than …&lt;/p&gt;</summary><content type="html">&lt;p&gt;In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being &lt;code&gt;libtcod&lt;/code&gt;, which is more "C++ic" than Pythonic).&lt;/p&gt;
+&lt;p&gt;This series aims to build on top of &lt;a href="http://www.roguebasin.com/index.php?title=Roguelike_Tutorial,_using_python3%2Btdl"&gt;this excellent series on RogueBasin&lt;/a&gt;, which walks you from basics to having a complete, shippable, small roguelike; the main additional benefit we want to confer from this tutorial is &lt;em&gt;code quality&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;The RogueBasin roguelike code, while excellent in terms of functionality, includes some poor design choices -- probably because the goal was a) make something fast that works, and b) put everything in one file so it's easy to copy-paste. As a result, it doesn't provide a solid foundation for extension -- you quickly get bogged down with complexity.&lt;/p&gt;
+&lt;p&gt;Specifically, we plan to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Use an entity-component system instead of a (mostly) monolithic &lt;code&gt;GameObject&lt;/code&gt; base class&lt;/li&gt;
+&lt;li&gt;Avoid the use of global variables completely&lt;/li&gt;
+&lt;li&gt;Isolate TDL code as much as possible, so that our code is more testable&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Without further ado, let's dive into the first part: writing our entity-component system.&lt;/p&gt;
+&lt;h1&gt;The Simplest Entity-Component System&lt;/h1&gt;
+&lt;p&gt;If you haven't heard about them before, you can read &lt;a href="http://cowboyprogramming.com/2007/01/05/evolve-your-heirachy/"&gt;this classic post about Entity-Component Systems&lt;/a&gt;. In a nutshell, the goal is to avoid complex classes with interweaved logic (input handling + UI/drawing + game logic + ...), and instead, compose classes made of small, independent components.&lt;/p&gt;
+&lt;p&gt;While there are many, &lt;em&gt;many&lt;/em&gt; ways to write an ECS, ours will follow the design of &lt;a href="http://craftyjs.com"&gt;CraftyJS&lt;/a&gt;, quite possibly one of the best ECS libraries ever:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Components are small, reusable classes that encapsulate code and data (eg. &lt;code&gt;HealthComponent&lt;/code&gt; with &lt;code&gt;get_hurt(damage)&lt;/code&gt;, &lt;code&gt;die()&lt;/code&gt;, &lt;code&gt;current_health&lt;/code&gt;, etc.)&lt;/li&gt;
+&lt;li&gt;Entities are classes that implement custom logic that spans components&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;With this in mind, let's create our base class: the entity.&lt;/p&gt;
+&lt;h1&gt;The Entity Class&lt;/h1&gt;
+&lt;p&gt;The Entity class has a few simple requrements:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;A user can &lt;code&gt;set(component)&lt;/code&gt; a component, and the entity will keep that. (The entity has, at most, one component of each type/class.)&lt;/li&gt;
+&lt;li&gt;A user can &lt;code&gt;get(clazz)&lt;/code&gt; a component, specifying the class/type, and will get the actual component&lt;/li&gt;
+&lt;li&gt;A user can check if an entity has a component of a specific type/class via &lt;code&gt;has(clazz)&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Internally, we can store components in a dictionary that maps components by type to instance.  Here's what that looks like:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Entity&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;components&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;components&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
+        &lt;span class="n"&gt;Entity&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;all_entities&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;component&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;components&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;component&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;component&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;type&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;component&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;components&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;key&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;component&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;clazz&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;components&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;clazz&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;has&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;clazz&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;clazz&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;That's it! We don't even need a &lt;code&gt;Component&lt;/code&gt; class, because entities can technically use any class/instance/object as a component.&lt;/p&gt;
+&lt;p&gt;We also only need a simple test: that we can &lt;code&gt;get&lt;/code&gt; a component which was &lt;code&gt;set&lt;/code&gt;, and that &lt;code&gt;has&lt;/code&gt; returns &lt;code&gt;True&lt;/code&gt; if the component exists (and &lt;code&gt;False&lt;/code&gt; otherwise). We should also test that &lt;code&gt;set&lt;/code&gt; overwrites the previous component. &lt;/p&gt;
+&lt;p&gt;Tests (&lt;code&gt;pytest&lt;/code&gt; tests):&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;ecs.entity&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;TestEntity&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_getter_gets_set_values&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+        &lt;span class="n"&gt;expected&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;13&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;expected&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="n"&gt;actual&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;actual&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;expected&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_set_overwrites_previous_value&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+        &lt;span class="n"&gt;expected&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;13&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1888&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;set&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;expected&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="n"&gt;actual&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;actual&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;expected&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;test_has_retruns_true_if_component_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="c1"&gt;# Note: doesn&amp;#39;t work for subclasses of the component&lt;/span&gt;
+        &lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Entity&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;77&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;has&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;
+        &lt;span class="k"&gt;assert&lt;/span&gt; &lt;span class="n"&gt;e&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;has&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;StringComponent&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="bp"&gt;False&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;IntComponent&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;StringComponent&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;value&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;With this, we can be sure our Entity class works as expected. In part two, we'll create a "Hello World" TDL application where we get the main UI window up, and start detecting/processing input so we can quit/terminate our game.&lt;/p&gt;</content></entry></feed>
