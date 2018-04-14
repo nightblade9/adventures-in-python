@@ -1,6 +1,6 @@
 Title: About
 
-Adventures in Python chronicles the various adventures of a developer semi-new to Python (myself).
+Python Zone chronicles the various adventures of a developer semi-new to Python (myself).
 
 After developing with several languages (Visual Basic, C#, Java, Ruby, Javascript, etc.) I find myself in need of a general-purpose, high-level scripting language for various projects. Although I initially settled on Ruby, I evnetually found that the community was too small; for some projects, there are very few resources available.
 
