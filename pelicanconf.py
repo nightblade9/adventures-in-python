@@ -3,8 +3,8 @@
 from __future__ import unicode_literals
 
 AUTHOR = 'Nightblade'
-SITENAME = 'Adventures in Python'
-SITEURL = 'https://nightblade9.github.io/adventures-in-python'
+SITENAME = 'Python Zone'
+SITEURL = 'https://nightblade9.github.io/python-zone'
 PATH = 'content'
 
 TIMEZONE = 'Canada/Eastern'
