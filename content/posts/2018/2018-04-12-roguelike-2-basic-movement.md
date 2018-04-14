@@ -1,6 +1,7 @@
 Title: Creating a Roguelike in Python + TDL, Part 2: Basic Movement
-Date: 2018-04-01
+Date: 2018-04-13
 Slug: creating-a-roguelike-in-python-tdl-part-2
+Category: Posts
 
 This is the second part of our series for creating a Python roguelike with TDL and an ECS. In [part one]({filename}2018-04-11-roguelike-1-ecs.md), we created our basic `Entity` class with the few methods it needs (`get`, `set`, `has`) and some unit tests. In this part, we're going to initialize out UI, draw our player on-screen, and have him move around when we use the arrow keys.
 

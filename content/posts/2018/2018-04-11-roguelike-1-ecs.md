@@ -1,6 +1,7 @@
 Title: Creating a Roguelike in Python + TDL, Part 1: Entity-Component System
 Date: 2018-04-01
 Slug: creating-a-roguelike-in-python-tdl-part-1
+Category: Posts
 
 In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being `libtcod`, which is more "C++ic" than Pythonic).
 
