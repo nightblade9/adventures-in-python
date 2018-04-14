@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+        <meta charset="utf-8" />
+        <title>Creating a Roguelike in Python + TDL, Part 2: Basic Movement</title>
+        <link rel="stylesheet" href="https://nightblade9.github.io/python-zone/theme/css/main.css" />
+        <link href="https://nightblade9.github.io/python-zone/atom.xml" type="application/atom+xml" rel="alternate" title="Python Zone Atom Feed" />
+
+        <!--[if IE]>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="https://nightblade9.github.io/python-zone/">Python Zone </a></h1>
+                <nav><ul>
+                    <li><a href="https://nightblade9.github.io/python-zone/pages/about.html">About</a></li>
+                    <li class="active"><a href="https://nightblade9.github.io/python-zone/category/misc.html">misc</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html" rel="bookmark"
+           title="Permalink to Creating a Roguelike in Python + TDL, Part 2: Basic Movement">Creating a Roguelike in Python + TDL, Part 2: Basic Movement</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2018-04-01T00:00:00-04:00">
+                Published: Sun 01 April 2018
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="https://nightblade9.github.io/python-zone/author/nightblade.html">Nightblade</a>
+        </address>
+<p>In <a href="https://nightblade9.github.io/python-zone/category/misc.html">misc</a>.</p>
+
+</footer><!-- /.post-info -->      <p>This is the second part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">part one</a>, we created our basic <code>Entity</code> class with the few methods it needs (<code>get</code>, <code>set</code>, <code>has</code>) and some unit tests. In this part, we're going to initialize out UI, draw our player on-screen, and have him move around when we use the arrow keys.</p>
+<h1>Setting Up TDL</h1>
+<p>TDL is complicated. Accordingly, we're going to start with the simplest possible "hello world" TDL: drawing the screen, processing input, and terminating when the player presses <code>ESC</code> or <code>q</code>.</p>
+<p>Here's the code for creating a basic TDL app:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
+
+<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
+            <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
+            <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
+            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;ESCAPE&quot;</span> <span class="ow">or</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s1">&#39;q&#39;</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;You pressed {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_pressed</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+
+<p>If you run this code, you'll see something like this (console in the background):</p>
+<p><img alt="screenshot" src="https://i.imgur.com/sVbghcT.png"></p>
+<p>Now that we can trap keyboard input (and arrow keys), we can start to work on our <code>Player</code> class.</p>
+<h1>Player Entity</h1>
+<p>In an ECS like ours (inspired by CraftyJS!), a player would be an <code>Entity</code>, which is made up of a bunch of <code>components</code>. For now, we'll just use a tuple of coordinates to handle this; in the future, we'll turn it into an <em>actual</em> <code>Player</code> entity, complete with display and keyboard-processing components.</p>
+<p>High-level steps:</p>
+<ul>
+<li>Create a tuple to store <code>(player_x, player_y)</code>.</li>
+<li>If the player presses an arrow key, update one of the two values appropriately.</li>
+<li>Draw the player onto the screen.</li>
+</ul>
+<p>Storing the values is trivial; for the input, we can process input, like so:</p>
+<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
+    <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
+<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
+    <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
+    <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
+<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
+    <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+
+
+<p>To draw the player, we need a little more work, and we need to learn a bit more about TDL.</p>
+<p>TDL has a <code>console</code> concept, which represents, well, an ASCII-like console. There's also the <code>root_console</code>, which is the one which draws onto the screen.</p>
+<p>To start, we need to keep a reference to the root console; that's the one we draw to. We can also draw to it by calling <code>root_console.draw_char(player_x, player_y, '@', (255, 255, 255))</code>. This draws a white '@' at <code>(player_x, player_y)</code>.</p>
+<p>Our total code looks like this:</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
+
+<span class="kn">import</span> <span class="nn">tdl</span>
+
+<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">root_console</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span> <span class="c1"># keep a reference to self.console</span>
+        <span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span> <span class="o">=</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
+            <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
+            <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
+
+            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
+                <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
+                <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
+                <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
+                <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+
+
+<p>Run it, and there's a problem! The player never draws! Astute observers might notice that the screen only draws <em>once you switch tabs and switch back.</em> What's going on?</p>
+<p>It turns out TDL buffers draw calls for performance (which makes sense). What we need to do, is force TDL to flush the output, by calling <code>tdl.flush()</code>.</p>
+<p>Now, our player moves! Hurrah! But there's another problem: he leaves behind <em>a trail of <code>@</code> characters.</em> </p>
+<p><img alt="screenshot" src="https://i.imgur.com/1jRw1e4.png"></p>
+<p>It turns out TDL (literally) only draws the changed character, and doesn't redraw anything previously drawn, or clear the previous player drawn onto the console.</p>
+<p>To fix this, we can call <code>root_console.clear</code> before drawing the player. And everything works as expected!</p>
+<p>Whew, that's a lot! Unfortunately, our code is starting to look positively spaghetti-like (almost to the point of global variables) -- we can't easily extract our user input input into a method, nor test it.</p>
+<p>In part 3, we'll step back and refactor this into a proper ECS architecture before foraging onward.</p>
+<h1>Final Code</h1>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
+
+<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">root_console</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span> <span class="c1"># keep a reference to self.console</span>
+        <span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span> <span class="o">=</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
+            <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
+            <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
+
+            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
+                <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
+                <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
+                <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
+                <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="n">root_console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+            <span class="n">tdl</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>links</h2>
+                        <ul>
+                            <li><a href="https://github.com/nightblade9">Profile</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+                            <li><a href="https://nightblade9.github.io/python-zone/atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+                            <li><a href="https://twitter.com/nightblade99">Twitter</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Copyright &copy; Nightblade, 2018+
+                </address><!-- /#about -->
+                
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>

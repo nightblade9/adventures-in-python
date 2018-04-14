@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Adventures in Python</title><link href="https://nightblade9.github.io/adventures-in-python/" rel="alternate"></link><link href="https://nightblade9.github.io/adventures-in-python/atom.xml" rel="self"></link><id>https://nightblade9.github.io/adventures-in-python/</id><updated>2018-04-01T00:00:00-04:00</updated><entry><title>Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</title><link href="https://nightblade9.github.io/adventures-in-python/2018/creating-a-roguelike-in-python-tdl-part-1.html" rel="alternate"></link><published>2018-04-01T00:00:00-04:00</published><updated>2018-04-01T00:00:00-04:00</updated><author><name>Nightblade</name></author><id>tag:nightblade9.github.io,2018-04-01:/adventures-in-python/2018/creating-a-roguelike-in-python-tdl-part-1.html</id><summary type="html">&lt;p&gt;In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being &lt;code&gt;libtcod&lt;/code&gt;, which is more "C++ic" than …&lt;/p&gt;</summary><content type="html">&lt;p&gt;In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being &lt;code&gt;libtcod&lt;/code&gt;, which is more "C++ic" than Pythonic).&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Python Zone</title><link href="https://nightblade9.github.io/python-zone/" rel="alternate"></link><link href="https://nightblade9.github.io/python-zone/atom.xml" rel="self"></link><id>https://nightblade9.github.io/python-zone/</id><updated>2018-04-01T00:00:00-04:00</updated><entry><title>Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</title><link href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html" rel="alternate"></link><published>2018-04-01T00:00:00-04:00</published><updated>2018-04-01T00:00:00-04:00</updated><author><name>Nightblade</name></author><id>tag:nightblade9.github.io,2018-04-01:/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html</id><summary type="html">&lt;p&gt;In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being &lt;code&gt;libtcod&lt;/code&gt;, which is more "C++ic" than …&lt;/p&gt;</summary><content type="html">&lt;p&gt;In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being &lt;code&gt;libtcod&lt;/code&gt;, which is more "C++ic" than Pythonic).&lt;/p&gt;
 &lt;p&gt;This series aims to build on top of &lt;a href="http://www.roguebasin.com/index.php?title=Roguelike_Tutorial,_using_python3%2Btdl"&gt;this excellent series on RogueBasin&lt;/a&gt;, which walks you from basics to having a complete, shippable, small roguelike; the main additional benefit we want to confer from this tutorial is &lt;em&gt;code quality&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;The RogueBasin roguelike code, while excellent in terms of functionality, includes some poor design choices -- probably because the goal was a) make something fast that works, and b) put everything in one file so it's easy to copy-paste. As a result, it doesn't provide a solid foundation for extension -- you quickly get bogged down with complexity.&lt;/p&gt;
 &lt;p&gt;Specifically, we plan to:&lt;/p&gt;
@@ -87,4 +87,119 @@
 &lt;/pre&gt;&lt;/div&gt;
 
 
-&lt;p&gt;With this, we can be sure our Entity class works as expected. In part two, we'll create a "Hello World" TDL application where we get the main UI window up, and start detecting/processing input so we can quit/terminate our game.&lt;/p&gt;</content></entry></feed>
+&lt;p&gt;With this, we can be sure our Entity class works as expected. In part two, we'll create a "Hello World" TDL application where we get the main UI window up, and start detecting/processing input so we can quit/terminate our game.&lt;/p&gt;</content></entry><entry><title>Creating a Roguelike in Python + TDL, Part 2: Basic Movement</title><link href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html" rel="alternate"></link><published>2018-04-01T00:00:00-04:00</published><updated>2018-04-01T00:00:00-04:00</updated><author><name>Nightblade</name></author><id>tag:nightblade9.github.io,2018-04-01:/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html</id><summary type="html">&lt;p&gt;This is the second part of our series for creating a Python roguelike with TDL and an ECS. In &lt;a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html"&gt;part one&lt;/a&gt;, we created our basic &lt;code&gt;Entity&lt;/code&gt; class with the few methods it needs (&lt;code&gt;get&lt;/code&gt;, &lt;code&gt;set&lt;/code&gt;, &lt;code&gt;has&lt;/code&gt;) and some unit tests. In this part, we're going to initialize out UI, draw …&lt;/p&gt;</summary><content type="html">&lt;p&gt;This is the second part of our series for creating a Python roguelike with TDL and an ECS. In &lt;a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html"&gt;part one&lt;/a&gt;, we created our basic &lt;code&gt;Entity&lt;/code&gt; class with the few methods it needs (&lt;code&gt;get&lt;/code&gt;, &lt;code&gt;set&lt;/code&gt;, &lt;code&gt;has&lt;/code&gt;) and some unit tests. In this part, we're going to initialize out UI, draw our player on-screen, and have him move around when we use the arrow keys.&lt;/p&gt;
+&lt;h1&gt;Setting Up TDL&lt;/h1&gt;
+&lt;p&gt;TDL is complicated. Accordingly, we're going to start with the simplest possible "hello world" TDL: drawing the screen, processing input, and terminating when the player presses &lt;code&gt;ESC&lt;/code&gt; or &lt;code&gt;q&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Here's the code for creating a basic TDL app:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;tdl&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Main&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;run&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_window_closed&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+            &lt;span class="n"&gt;user_input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;key_wait&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;user_input&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;keychar&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;ESCAPE&amp;quot;&lt;/span&gt; &lt;span class="ow"&gt;or&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;q&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="k"&gt;break&lt;/span&gt;
+            &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="k"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;You pressed {}&amp;quot;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;key_pressed&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="vm"&gt;__name__&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;__main__&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;Main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;run&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;If you run this code, you'll see something like this (console in the background):&lt;/p&gt;
+&lt;p&gt;&lt;img alt="screenshot" src="https://i.imgur.com/sVbghcT.png"&gt;&lt;/p&gt;
+&lt;p&gt;Now that we can trap keyboard input (and arrow keys), we can start to work on our &lt;code&gt;Player&lt;/code&gt; class.&lt;/p&gt;
+&lt;h1&gt;Player Entity&lt;/h1&gt;
+&lt;p&gt;In an ECS like ours (inspired by CraftyJS!), a player would be an &lt;code&gt;Entity&lt;/code&gt;, which is made up of a bunch of &lt;code&gt;components&lt;/code&gt;. For now, we'll just use a tuple of coordinates to handle this; in the future, we'll turn it into an &lt;em&gt;actual&lt;/em&gt; &lt;code&gt;Player&lt;/code&gt; entity, complete with display and keyboard-processing components.&lt;/p&gt;
+&lt;p&gt;High-level steps:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Create a tuple to store &lt;code&gt;(player_x, player_y)&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;If the player presses an arrow key, update one of the two values appropriately.&lt;/li&gt;
+&lt;li&gt;Draw the player onto the screen.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Storing the values is trivial; for the input, we can process input, like so:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;UP&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;player_y&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;DOWN&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;player_y&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;LEFT&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;player_x&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;RIGHT&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;player_x&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;To draw the player, we need a little more work, and we need to learn a bit more about TDL.&lt;/p&gt;
+&lt;p&gt;TDL has a &lt;code&gt;console&lt;/code&gt; concept, which represents, well, an ASCII-like console. There's also the &lt;code&gt;root_console&lt;/code&gt;, which is the one which draws onto the screen.&lt;/p&gt;
+&lt;p&gt;To start, we need to keep a reference to the root console; that's the one we draw to. We can also draw to it by calling &lt;code&gt;root_console.draw_char(player_x, player_y, '@', (255, 255, 255))&lt;/code&gt;. This draws a white '@' at &lt;code&gt;(player_x, player_y)&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Our total code looks like this:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;tdl&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;tdl&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Main&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;run&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;root_console&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;# keep a reference to self.console&lt;/span&gt;
+        &lt;span class="n"&gt;player_x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;player_y&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;25&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_window_closed&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+            &lt;span class="n"&gt;user_input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;key_wait&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;user_input&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;keychar&lt;/span&gt;
+
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;UP&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;player_y&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+            &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;DOWN&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;player_y&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+            &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;LEFT&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;player_x&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+            &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;RIGHT&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;player_x&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+
+            &lt;span class="n"&gt;root_console&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;draw_char&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;player_x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;player_y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;@&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="vm"&gt;__name__&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;Main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;run&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Run it, and there's a problem! The player never draws! Astute observers might notice that the screen only draws &lt;em&gt;once you switch tabs and switch back.&lt;/em&gt; What's going on?&lt;/p&gt;
+&lt;p&gt;It turns out TDL buffers draw calls for performance (which makes sense). What we need to do, is force TDL to flush the output, by calling &lt;code&gt;tdl.flush()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Now, our player moves! Hurrah! But there's another problem: he leaves behind &lt;em&gt;a trail of &lt;code&gt;@&lt;/code&gt; characters.&lt;/em&gt; &lt;/p&gt;
+&lt;p&gt;&lt;img alt="screenshot" src="https://i.imgur.com/1jRw1e4.png"&gt;&lt;/p&gt;
+&lt;p&gt;It turns out TDL (literally) only draws the changed character, and doesn't redraw anything previously drawn, or clear the previous player drawn onto the console.&lt;/p&gt;
+&lt;p&gt;To fix this, we can call &lt;code&gt;root_console.clear&lt;/code&gt; before drawing the player. And everything works as expected!&lt;/p&gt;
+&lt;p&gt;Whew, that's a lot! Unfortunately, our code is starting to look positively spaghetti-like (almost to the point of global variables) -- we can't easily extract our user input input into a method, nor test it.&lt;/p&gt;
+&lt;p&gt;In part 3, we'll step back and refactor this into a proper ECS architecture before foraging onward.&lt;/p&gt;
+&lt;h1&gt;Final Code&lt;/h1&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;tdl&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Main&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;run&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;root_console&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;80&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;# keep a reference to self.console&lt;/span&gt;
+        &lt;span class="n"&gt;player_x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;player_y&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;25&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;is_window_closed&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+            &lt;span class="n"&gt;user_input&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;event&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;key_wait&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;user_input&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;keychar&lt;/span&gt;
+
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;UP&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;player_y&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+            &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;DOWN&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;player_y&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+            &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;LEFT&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;player_x&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+            &lt;span class="k"&gt;elif&lt;/span&gt; &lt;span class="n"&gt;key_pressed&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;RIGHT&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;player_x&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+
+            &lt;span class="n"&gt;root_console&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;clear&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="n"&gt;root_console&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;draw_char&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;player_x&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;player_y&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;@&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;255&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+            &lt;span class="n"&gt;tdl&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;flush&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="vm"&gt;__name__&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;__main__&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;Main&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;run&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content></entry></feed>
