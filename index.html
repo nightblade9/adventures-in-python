@@ -22,10 +22,10 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html">Creating a Roguelike in Python + TDL, Part 2: Basic Movement</a></h1>
+                    <h1 class="entry-title"><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-3.html">Creating a Roguelike in Python + TDL, Part 3: The Drawing System</a></h1>
 <footer class="post-info">
-        <abbr class="published" title="2018-04-13T00:00:00-04:00">
-                Published: Fri 13 April 2018
+        <abbr class="published" title="2018-04-14T00:00:00-04:00">
+                Published: Sat 14 April 2018
         </abbr>
 
         <address class="vcard author">
@@ -33,127 +33,305 @@
         </address>
 <p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
 
-</footer><!-- /.post-info --><p>This is the second part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">part one</a>, we created our basic <code>Entity</code> class with the few methods it needs (<code>get</code>, <code>set</code>, <code>has</code>) and some unit tests. In this part, we're going to initialize out UI, draw our player on-screen, and have him move around when we use the arrow keys.</p>
-<h1>Setting Up TDL</h1>
-<p>TDL is complicated. Accordingly, we're going to start with the simplest possible "hello world" TDL: drawing the screen, processing input, and terminating when the player presses <code>ESC</code> or <code>q</code>.</p>
-<p>Here's the code for creating a basic TDL app:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
-
-<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
-
-        <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
-            <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
-            <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
-            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;ESCAPE&quot;</span> <span class="ow">or</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s1">&#39;q&#39;</span><span class="p">:</span>
-                <span class="k">break</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;You pressed {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_pressed</span><span class="p">))</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</pre></div>
-
-
-<p>If you run this code, you'll see something like this (console in the background):</p>
-<p><img alt="screenshot" src="https://i.imgur.com/sVbghcT.png"></p>
-<p>Now that we can trap keyboard input (and arrow keys), we can start to work on our <code>Player</code> class.</p>
-<h1>Player Entity</h1>
-<p>In an ECS like ours (inspired by CraftyJS!), a player would be an <code>Entity</code>, which is made up of a bunch of <code>components</code>. For now, we'll just use a tuple of coordinates to handle this; in the future, we'll turn it into an <em>actual</em> <code>Player</code> entity, complete with display and keyboard-processing components.</p>
-<p>High-level steps:</p>
+</footer><!-- /.post-info --><p>This is the third part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html">part two</a>, we finally enabled our player to run around with the arrow keys, learning about about TDL's drawing APIs along the way.</p>
+<p>In this part, we aim to take our spaghetti-like mess of code and refactor the drawing part out into a testable drawing system.</p>
+<h1>A Word About Testing</h1>
+<p>Testing is a complicated topic. To keep it simple, we'll write unit-tests (fast, isolated, class-/method-level tests) that test our code. We'll keep TDL out of the picture with a combination of mocks/stubs and dependency injection.</p>
+<p>We do this because writing complex "integration" tests that include TDL. This can be problematic because:</p>
 <ul>
-<li>Create a tuple to store <code>(player_x, player_y)</code>.</li>
-<li>If the player presses an arrow key, update one of the two values appropriately.</li>
-<li>Draw the player onto the screen.</li>
+<li>They run in the order of seconds instead of milliseconds per test</li>
+<li>They require spinning up a TDL application and removing it</li>
+<li>They can be fragile/fickle depending on how TDL's inner workings are (something we want to avoid learninag about)</li>
+<li>They can't run in a <em>headless</em> CI environment like Travis that doesn't have a display</li>
 </ul>
-<p>Storing the values is trivial; for the input, we can process input, like so:</p>
-<div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
-    <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
-<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
-    <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
-<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
-    <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
-<span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
-    <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
+<p>There's a lot more we can say about testing, but this is enough for now.</p>
+<h1>Adding Systems to our Entity Component Systems</h1>
+<p>Like most ECSes out there, in ours, a <code>System</code> is a class with a single purpose, that will operate on entities  that have one or more matching components. For example, we'll make a <code>DisplayComponent</code> that encapsulates display data (<code>x, y</code> coordinates, character, and colour), and the <code>DisplaySystem</code> will simply draw all entities' display components on-screen.</p>
+<p>Since we'll probably use different sets of systems in different scenes (eg. the menu and core game might require a <code>KeyboardInputSystem</code> but only the core game would require a <code>DisplaySystem</code> for drawing entities). we'll introduce a new concept called a <code>Container</code>.</p>
+<p>A <code>Container</code> is basically just a collection of entities and systems used together. Calling <code>update</code> on the container will call <code>update</code> on each system, passing in the list of entities. Our core game loop, instead of managing input, drawing, etc. will simply call <code>container.update</code>, which will call <code>update</code> on each system to handle drawing, input, etc.</p>
+<p>This way, systems are more lightweight, and easier to test (pass in any set of entities and you're good).</p>
+<p>With that out of the way, let's start by adding our first (display) system and component.</p>
+<h1>Refactoring Out the Display System and Component</h1>
+<p>From part two, the end of our core game loop looked like this:</p>
+<div class="highlight"><pre><span></span><span class="n">root_console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="n">root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+<span class="n">tdl</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 </pre></div>
 
 
-<p>To draw the player, we need a little more work, and we need to learn a bit more about TDL.</p>
-<p>TDL has a <code>console</code> concept, which represents, well, an ASCII-like console. There's also the <code>root_console</code>, which is the one which draws onto the screen.</p>
-<p>To start, we need to keep a reference to the root console; that's the one we draw to. We can also draw to it by calling <code>root_console.draw_char(player_x, player_y, '@', (255, 255, 255))</code>. This draws a white '@' at <code>(player_x, player_y)</code>.</p>
-<p>Our total code looks like this:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
+<p>We can copy-paste this code into a new <code>DisplaySystem</code> class:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">DisplaySystem</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
+            <span class="n">dc</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span>
+            <span class="n">root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">dc</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">dc</span><span class="o">.</span><span class="n">character</span><span class="p">,</span> <span class="n">dc</span><span class="o">.</span><span class="n">colour</span><span class="p">)</span>
+</pre></div>
 
+
+<p>Wait, we need to have access to the root console! Since the display system handles all things display-related, it makes sense to move the TDL initializer code inside, along with the root console:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fantastic_couscous.ecs.components.display_component</span> <span class="kn">import</span> <span class="n">DisplayComponent</span>
 <span class="kn">import</span> <span class="nn">tdl</span>
 
-<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">root_console</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span> <span class="c1"># keep a reference to self.console</span>
-        <span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span> <span class="o">=</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DisplaySystem</span><span class="p">:</span>
 
-        <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
-            <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
-            <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root_console</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
-                <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
-                <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
-                <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
-                <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
+        <span class="c1"># TODO: instead of this, track old positions and redraw only what changed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root_console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
 
-            <span class="n">root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
+            <span class="n">dc</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">dc</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">dc</span><span class="o">.</span><span class="n">character</span><span class="p">,</span> <span class="n">dc</span><span class="o">.</span><span class="n">colour</span><span class="p">)</span>
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="n">tdl</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 </pre></div>
 
 
-<p>Run it, and there's a problem! The player never draws! Astute observers might notice that the screen only draws <em>once you switch tabs and switch back.</em> What's going on?</p>
-<p>It turns out TDL buffers draw calls for performance (which makes sense). What we need to do, is force TDL to flush the output, by calling <code>tdl.flush()</code>.</p>
-<p>Now, our player moves! Hurrah! But there's another problem: he leaves behind <em>a trail of <code>@</code> characters.</em> </p>
-<p><img alt="screenshot" src="https://i.imgur.com/1jRw1e4.png"></p>
-<p>It turns out TDL (literally) only draws the changed character, and doesn't redraw anything previously drawn, or clear the previous player drawn onto the console.</p>
-<p>To fix this, we can call <code>root_console.clear</code> before drawing the player. And everything works as expected!</p>
-<p>Whew, that's a lot! Unfortunately, our code is starting to look positively spaghetti-like (almost to the point of global variables) -- we can't easily extract our user input input into a method, nor test it.</p>
-<p>In part 3, we'll step back and refactor this into a proper ECS architecture before foraging onward.</p>
-<h1>Final Code</h1>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">tdl</span>
+<p>This looks fine, except there's one problem: we can't easily test it, because we have a hard dependency on <code>tdl</code> and <code>console</code>. We can address these problems later; let's get the main loop working first.</p>
+<h2>Creating the <code>Container</code> Class</h2>
+<p>Next, we need to wire up our <code>Container</code> class. It's pretty simple, and looks something like this:</p>
+<div class="highlight"><pre><span></span><span class="c1"># A generic container of systems. This is how we define a bunch of systems.</span>
+<span class="c1"># Singleton-ish, so it&#39;s both easily accessible and unit-testable.</span>
+<span class="k">class</span> <span class="nc">Container</span><span class="p">:</span>
 
+    <span class="n">instance</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Container</span><span class="o">.</span><span class="n">instance</span> <span class="o">=</span> <span class="bp">self</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_systems</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entities</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">add_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_systems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">add_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_systems</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_entities</span><span class="p">)</span>
+</pre></div>
+
+
+<p>It's pretty simple: you can add entities and systems, and calling update just calls update on each system, passing in the entities. We can also write tests for it:</p>
+<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fantastic_couscous.ecs.container</span> <span class="kn">import</span> <span class="n">Container</span>
+<span class="kn">from</span> <span class="nn">fantastic_couscous.ecs.entity</span> <span class="kn">import</span> <span class="n">Entity</span>
+
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="k">class</span> <span class="nc">TestContainer</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">test_add_system_adds_systems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s1</span> <span class="o">=</span> <span class="n">DummySystem</span><span class="p">()</span>
+        <span class="n">s2</span> <span class="o">=</span> <span class="n">DummySystem</span><span class="p">()</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">Container</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">s1</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">_systems</span>
+        <span class="k">assert</span> <span class="n">s2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">_systems</span>
+
+    <span class="k">def</span> <span class="nf">test_add_entity_adds_it_to_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">Entity</span><span class="p">()</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">Container</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">add_entity</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">_entities</span>
+
+    <span class="k">def</span> <span class="nf">test_update_calls_update_on_all_systems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">Container</span><span class="p">()</span>
+        <span class="n">s1</span> <span class="o">=</span> <span class="n">DummySystem</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+        <span class="n">s2</span> <span class="o">=</span> <span class="n">DummySystem</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+        <span class="k">assert</span> <span class="n">s1</span><span class="o">.</span><span class="n">update_calls</span> <span class="o">==</span> <span class="mi">2</span>
+        <span class="k">assert</span> <span class="n">s2</span><span class="o">.</span><span class="n">update_calls</span> <span class="o">==</span> <span class="mi">1</span>
+
+<span class="k">class</span> <span class="nc">DummySystem</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_calls</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_calls</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+
+
+<p>With that done, we can finally modify our main loop to:</p>
+<ul>
+<li>Create a new container</li>
+<li>Initialize and add the <code>DisplaySystem</code>, initializing the root console from TDL</li>
+<li>Converting the player into an entity class with a <code>DisplayComponent</code>.</li>
+</ul>
+<p>Let's get to it.</p>
+<h2>Modifying the Main Loop</h2>
+<p>Here's what our (abbreviated) loop should look like now:</p>
+<div class="highlight"><pre><span></span><span class="c1"># player.py</span>
+<span class="k">class</span> <span class="nc">Player</span><span class="p">(</span><span class="n">Entity</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="mh">0xFFFFFF</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
+
+<span class="c1"># main.py</span>
 <span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">root_console</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span> <span class="c1"># keep a reference to self.console</span>
-        <span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span> <span class="o">=</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">player</span> <span class="o">=</span> <span class="n">Player</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">Container</span><span class="p">()</span>
+        <span class="c1"># Order matters. Draw last.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="n">DisplaySystem</span><span class="p">(</span><span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">add_entity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">player</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">core_game_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
 
         <span class="k">while</span> <span class="ow">not</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">is_window_closed</span><span class="p">():</span>
             <span class="n">user_input</span> <span class="o">=</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">key_wait</span><span class="p">()</span>
             <span class="n">key_pressed</span> <span class="o">=</span> <span class="n">user_input</span><span class="o">.</span><span class="n">keychar</span>
+            <span class="c1"># Process input as before</span>
 
-            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
-                <span class="n">player_y</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
-                <span class="n">player_y</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
-                <span class="n">player_x</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
-                <span class="n">player_x</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="n">root_console</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-            <span class="n">root_console</span><span class="o">.</span><span class="n">draw_char</span><span class="p">(</span><span class="n">player_x</span><span class="p">,</span> <span class="n">player_y</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
-            <span class="n">tdl</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>            
+</pre></div>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-</pre></div>                </article>
+<p>Input processing can remain as-is. Our game output should be identical to before.  With this in place, our refactoring is done; we can move on to testing our code.</p>
+<h1>Testing the Display System</h1>
+<p>Our display system is inherently untestable because it depends on <code>tdl</code> and <code>console</code>. How can we resolve this?</p>
+<p>Dependency Injection to the rescue!  Instead of creating the <code>console</code> internally, we can pass it in:</p>
+<div class="highlight"><pre><span></span><span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">console</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">root_console</span> <span class="o">=</span> <span class="n">console</span>
+</pre></div>
+
+
+<p>When we create the display system in our main loop, we call <code>DisplaySystem(tdl.init(80, 50))</code>. In our tests, we can pass in something else, depending on what we want to test. A complete mock (with respect to calls we use now) looks like this:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">FakeConsole</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">draw_char</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">character</span><span class="p">,</span> <span class="n">colour</span><span class="p">):</span>
+        <span class="k">pass</span>
+</pre></div>
+
+
+<p>This allows us to run our tests by calling <code>DisplaySystem(FakeConsole())</code>, but it doesn't let us easily test what methods are mocked. To do that, we can log methods with their parameters, like so:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">FakeConsole</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_calls</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_calls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;clear&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_char</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">character</span><span class="p">,</span> <span class="n">colour</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_calls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;draw_char({}, {}, {}, {})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">character</span><span class="p">,</span> <span class="n">colour</span><span class="p">))</span>
+</pre></div>
+
+
+<p>This allows us to write things like <code>assert "draw_char(3, 5, '@', 'white')" in console.draw_calls</code>.</p>
+<p>The second problem is the <code>tdl</code> references. How can we mock those out? As it's a module, we can't simply inject it.</p>
+<p>The answer comes from Python's import order; if we create a local module called <code>tdl</code>, that module gets imported first! We can do something like this:</p>
+<div class="highlight"><pre><span></span><span class="c1"># tdl.py</span>
+
+<span class="k">def</span> <span class="nf">draw_char</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">character</span><span class="p">,</span> <span class="n">colour</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+
+
+<p>A more useful mock would be one where we can check what methods are called, like our <code>FakeConsole</code>:</p>
+<div class="highlight"><pre><span></span><span class="n">tdl_calls</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">def</span> <span class="nf">flush</span><span class="p">():</span>
+    <span class="n">tdl_calls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;flush&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>This allows us to add asserts like <code>assert "flush" in tdl.tdl_calls</code>.</p>
+<p>With this in place, we're ready to test our display system. There aren't many interesting tests, so I'll just add the list below.</p>
+<div class="highlight"><pre><span></span><span class="c1">#test_display_system.py</span>
+<span class="kn">import</span> <span class="nn">tdl</span>
+<span class="kn">import</span> <span class="nn">pytest</span>
+
+<span class="k">class</span> <span class="nc">TestDisplaySystem</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">test_init_injects_root_console</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">console</span> <span class="o">=</span> <span class="mi">37</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">DisplaySystem</span><span class="p">(</span><span class="n">console</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">d</span><span class="o">.</span><span class="n">_root_console</span> <span class="o">==</span> <span class="n">console</span>
+
+    <span class="k">def</span> <span class="nf">test_update_calls_draw_char_on_console_with_display_component_from_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">player</span> <span class="o">=</span> <span class="n">Entity</span><span class="p">()</span>
+        <span class="n">player</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="s2">&quot;white&quot;</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+        <span class="n">monster</span> <span class="o">=</span> <span class="n">Entity</span><span class="p">()</span>
+        <span class="n">monster</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">(</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="n">Container</span><span class="p">()</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">add_entity</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">add_entity</span><span class="p">(</span><span class="n">monster</span><span class="p">)</span>
+        <span class="n">console</span> <span class="o">=</span> <span class="n">FakeConsole</span><span class="p">()</span>
+
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">DisplaySystem</span><span class="p">(</span><span class="n">console</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+
+        <span class="c1"># Act</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+
+        <span class="c1"># Assert</span>
+        <span class="n">pd</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span>
+        <span class="n">md</span> <span class="o">=</span> <span class="n">monster</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span>
+        <span class="n">calls</span> <span class="o">=</span> <span class="n">console</span><span class="o">.</span><span class="n">draw_calls</span>
+        <span class="k">assert</span> <span class="n">calls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;clear&quot;</span>
+        <span class="k">assert</span> <span class="n">calls</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;draw_char({}, {}, {}, {})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">character</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">colour</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">calls</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;draw_char({}, {}, {}, {})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">character</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">colour</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">tdl</span><span class="o">.</span><span class="n">tdl_calls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;flush&quot;</span>
+
+<span class="k">class</span> <span class="nc">FakeConsole</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_calls</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_calls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;clear&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_char</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">character</span><span class="p">,</span> <span class="n">colour</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_calls</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;draw_char({}, {}, {}, {})&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">character</span><span class="p">,</span> <span class="n">colour</span><span class="p">))</span>
+</pre></div>
+
+
+<p>The only new, noteworthy piece here is that we're checking that specific calls were made, thanks to our logging them in <code>draw_calls</code> in <code>FakeConsole</code>. </p>
+<p>Also, consider how much more testable the code is compared to before. While we still have a bunch of untestable code in <code>main.py</code>, it's significantly reduced.</p>
+<p>It's also worth mentioning here that this responsibility (mocking classes, recording/asserting which calls are made) can usually be done by so-called mocking or dynamic-mocking frameworks like <code>unittest.mock</code>.</p>
+<p>Since Python relies on duck-typing, and our classes are easy to mock/create, here, we just rely on hand-crafted mocks.</p>
+<p>That's a lot, but that wraps up part three. In part four, we'll make a similar change to move the input processing into a keyboard-input-handling system. </p>                </article>
             </aside><!-- /#featured -->
                 <section id="content" class="body">
                     <h1>Other articles</h1>
                     <hr />
                     <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html" rel="bookmark"
+                           title="Permalink to Creating a Roguelike in Python + TDL, Part 2: Basic Movement">Creating a Roguelike in Python + TDL, Part 2: Basic Movement</a></h1>
+                </header>
+
+                <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2018-04-12T00:00:00-04:00">
+                Published: Thu 12 April 2018
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="https://nightblade9.github.io/python-zone/author/nightblade.html">Nightblade</a>
+        </address>
+<p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
+
+</footer><!-- /.post-info -->                <p>This is the second part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">part one</a>, we created our basic <code>Entity</code> class with the few methods it needs (<code>get</code>, <code>set</code>, <code>has</code>) and some unit tests. In this part, we're going to initialize out UI, draw …</p>
+                <a class="readmore" href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>
