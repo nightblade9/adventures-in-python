@@ -1,5 +1,5 @@
 Title: Creating a Roguelike in Python + TDL, Part 2: Basic Movement
-Date: 2018-04-13
+Date: 2018-04-12
 Slug: creating-a-roguelike-in-python-tdl-part-2
 Category: Posts
 
