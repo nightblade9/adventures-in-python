@@ -2,7 +2,7 @@
 <html lang="english">
 <head>
         <meta charset="utf-8" />
-        <title>Python Zone - Posts</title>
+        <title>Creating a Roguelike in Python + TDL, Part 4: The Keyboard Input System</title>
         <link rel="stylesheet" href="https://nightblade9.github.io/python-zone/theme/css/main.css" />
         <link href="https://nightblade9.github.io/python-zone/atom.xml" type="application/atom+xml" rel="alternate" title="Python Zone Atom Feed" />
 
@@ -20,10 +20,15 @@
                     <li><a href="https://twitter.com/nightblade99">Twitter</a></li>
                 </ul></nav>
         </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-4.html" rel="bookmark"
+           title="Permalink to Creating a Roguelike in Python + TDL, Part 4: The Keyboard Input System">Creating a Roguelike in Python + TDL, Part 4: The Keyboard Input System</a></h1>
+    </header>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-4.html">Creating a Roguelike in Python + TDL, Part 4: The Keyboard Input System</a></h1>
+    <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2018-04-16T00:00:00-04:00">
                 Published: Mon 16 April 2018
@@ -34,7 +39,7 @@
         </address>
 <p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
 
-</footer><!-- /.post-info --><p>This is the fourth part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-3.html">part three</a>, we refactored out a display system that handles drawing our player on-screen. We still have a lot of untestable keyboard input code in our <code>main.py</code> file, so we're going to extract that into a <code>KeyboardInputSystem</code> (with corresponding <code>KeyboardInputComponent</code>).</p>
+</footer><!-- /.post-info -->      <p>This is the fourth part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-3.html">part three</a>, we refactored out a display system that handles drawing our player on-screen. We still have a lot of untestable keyboard input code in our <code>main.py</code> file, so we're going to extract that into a <code>KeyboardInputSystem</code> (with corresponding <code>KeyboardInputComponent</code>).</p>
 <h1>Input is Complicated</h1>
 <p>Unlike the display system, we can't simply copy-paste the keyboard handling code into a new system and call it a day. Our game is real-time (so we can do things like animation and mouse-look), so we need to keep track of a couple of things:</p>
 <ul>
@@ -324,81 +329,11 @@
 <p>Pretty simple. With this, we have a mostly complete refactored loop.</p>
 <p>In part five, we'll forage onward and add some new functionality to our roguelike (solid walls that we can't walk through).</p>
 <p>Meanwhile, I'll also clean up the <code>main.py</code> file and extract out some of the dependencies on the various systems so we can test <code>check_for_game_over</code> and <code>check_if_time_passed</code>. While having 100% testable code is an ideal to strive for, the practical reality is that it's not always worth it to write complex/flaky tests to get there.</p>
-<p>In this case, we have two methods that are relatively easy to make testable by extracting dependencies, so it's worth it.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+<p>In this case, we have two methods that are relatively easy to make testable by extracting dependencies, so it's worth it.</p>
+    </div><!-- /.entry-content -->
 
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-3.html" rel="bookmark"
-                           title="Permalink to Creating a Roguelike in Python + TDL, Part 3: The Drawing System">Creating a Roguelike in Python + TDL, Part 3: The Drawing System</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2018-04-14T00:00:00-04:00">
-                Published: Sat 14 April 2018
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="https://nightblade9.github.io/python-zone/author/nightblade.html">Nightblade</a>
-        </address>
-<p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
-
-</footer><!-- /.post-info -->                <p>This is the third part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html">part two</a>, we finally enabled our player to run around with the arrow keys, learning about about TDL's drawing APIs along the way.</p>
-<p>In this part, we aim to take our …</p>
-                <a class="readmore" href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-3.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html" rel="bookmark"
-                           title="Permalink to Creating a Roguelike in Python + TDL, Part 2: Basic Movement">Creating a Roguelike in Python + TDL, Part 2: Basic Movement</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2018-04-12T00:00:00-04:00">
-                Published: Thu 12 April 2018
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="https://nightblade9.github.io/python-zone/author/nightblade.html">Nightblade</a>
-        </address>
-<p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
-
-</footer><!-- /.post-info -->                <p>This is the second part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">part one</a>, we created our basic <code>Entity</code> class with the few methods it needs (<code>get</code>, <code>set</code>, <code>has</code>) and some unit tests. In this part, we're going to initialize out UI, draw …</p>
-                <a class="readmore" href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-2.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-
-            <li><article class="hentry">
-                <header>
-                    <h1><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html" rel="bookmark"
-                           title="Permalink to Creating a Roguelike in Python + TDL, Part 1: Entity-Component System">Creating a Roguelike in Python + TDL, Part 1: Entity-Component System</a></h1>
-                </header>
-
-                <div class="entry-content">
-<footer class="post-info">
-        <abbr class="published" title="2018-04-01T00:00:00-04:00">
-                Published: Sun 01 April 2018
-        </abbr>
-
-        <address class="vcard author">
-                By                         <a class="url fn" href="https://nightblade9.github.io/python-zone/author/nightblade.html">Nightblade</a>
-        </address>
-<p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
-
-</footer><!-- /.post-info -->                <p>In this series, we're going to build a roguelike in Python and TDL. Python is a high-level, interpreted, object-oriented and functional language with expressive syntax, native lambdas, and more goodness. TDL is one of two console-like libraries for the UI (the other being <code>libtcod</code>, which is more "C++ic" than …</p>
-                <a class="readmore" href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-1.html">read more</a>
-                </div><!-- /.entry-content -->
-            </article></li>
-                </ol><!-- /#posts-list -->
-                </section><!-- /#content -->
+  </article>
+</section>
         <section id="extras" class="body">
                 <div class="blogroll">
                         <h2>links</h2>
