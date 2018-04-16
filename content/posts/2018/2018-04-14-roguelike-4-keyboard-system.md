@@ -1,9 +1,9 @@
 Title: Creating a Roguelike in Python + TDL, Part 4: The Keyboard Input System
-Date: 2018-04-14
+Date: 2018-04-16
 Slug: creating-a-roguelike-in-python-tdl-part-4
 Category: Posts
 
-This is the fourth part of our series for creating a Python roguelike with TDL and an ECS. In [part three]({filename}2018-04-14-roguelike-3-drawing-system), we refactored out a display system that handles drawing our player on-screen. We still have a lot of untestable keyboard input code in our `main.py` file, so we're going to extract that into a `KeyboardInputSystem` (with corresponding `KeyboardInputComponent`).
+This is the fourth part of our series for creating a Python roguelike with TDL and an ECS. In [part three]({filename}2018-04-14-roguelike-3-drawing-system.md), we refactored out a display system that handles drawing our player on-screen. We still have a lot of untestable keyboard input code in our `main.py` file, so we're going to extract that into a `KeyboardInputSystem` (with corresponding `KeyboardInputComponent`).
 
 # Input is Complicated
 
