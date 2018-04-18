@@ -23,7 +23,54 @@
 
             <aside id="featured" class="body">
                 <article>
-                    <h1 class="entry-title"><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-4.html">Creating a Roguelike in Python + TDL, Part 4: The Keyboard Input System</a></h1>
+                    <h1 class="entry-title"><a href="https://nightblade9.github.io/python-zone/2018/pythons-interactive-repl.html">Python's Interactive REPL</a></h1>
+<footer class="post-info">
+        <abbr class="published" title="2018-04-17T00:00:00-04:00">
+                Published: Tue 17 April 2018
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="https://nightblade9.github.io/python-zone/author/nightblade.html">Nightblade</a>
+        </address>
+<p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
+
+</footer><!-- /.post-info --><p>Did you ever write a bunch of Python code, save it into a file, run it, and wish you could somehow import all that content into a REPL session so you can poke it?</p>
+<p>Turns out you can. <a href="https://realpython.com/python-json/">This long, thorough article about JSON in Python</a> contains a real nugget of wisdom in the middle:</p>
+<blockquote>
+<p><strong>What’s interactive mode?</strong> Ah, I thought you’d never ask! You know how you’re always jumping back and forth between the your editor and the terminal? Well, us sneaky Pythoneers use the -i interactive flag when we run the script. This is a great little trick for testing code because it runs the script and then opens up an interactive command prompt with access to all the data from the script!</p>
+</blockquote>
+<p>Let's say you have a file called <code>cows.py</code> that looks like this:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Cow</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;{} says Moo!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">goldie</span> <span class="o">=</span> <span class="n">Cow</span><span class="p">(</span><span class="s2">&quot;Goldie&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>If you run <code>python -i cows.py</code> from your terminal, not will see <code>Goldie says Moo!</code>, but you can reference the <code>goldie</code> variable:</p>
+<div class="highlight"><pre><span></span>Goldie says Moo!
+&gt;&gt;&gt; goldie
+&lt;__main__.Cow object at 0x02D1F510&gt;
+&gt;&gt;&gt;
+</pre></div>
+
+
+<p>This is a really excellent way to combine the benefit of writing your code with an IDE and saving complex statements, with being able to quickly interact with it.</p>                </article>
+            </aside><!-- /#featured -->
+                <section id="content" class="body">
+                    <h1>Other articles</h1>
+                    <hr />
+                    <ol id="posts-list" class="hfeed">
+
+            <li><article class="hentry">
+                <header>
+                    <h1><a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-4.html" rel="bookmark"
+                           title="Permalink to Creating a Roguelike in Python + TDL, Part 4: The Keyboard Input System">Creating a Roguelike in Python + TDL, Part 4: The Keyboard Input System</a></h1>
+                </header>
+
+                <div class="entry-content">
 <footer class="post-info">
         <abbr class="published" title="2018-04-16T00:00:00-04:00">
                 Published: Mon 16 April 2018
@@ -34,302 +81,10 @@
         </address>
 <p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
 
-</footer><!-- /.post-info --><p>This is the fourth part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-3.html">part three</a>, we refactored out a display system that handles drawing our player on-screen. We still have a lot of untestable keyboard input code in our <code>main.py</code> file, so we're going to extract that into a <code>KeyboardInputSystem</code> (with corresponding <code>KeyboardInputComponent</code>).</p>
-<h1>Input is Complicated</h1>
-<p>Unlike the display system, we can't simply copy-paste the keyboard handling code into a new system and call it a day. Our game is real-time (so we can do things like animation and mouse-look), so we need to keep track of a couple of things:</p>
-<ul>
-<li>If the player presses <code>ESC</code> or <code>q</code>, we want to terminate the game</li>
-<li>If the player moves, we want to update all the systems in the game</li>
-<li>if the player doesn't move, we want to just redraw and check for input.</li>
-</ul>
-<p>We also need to convert the player into an <code>Entity</code> subclass with a <code>DisplayComponent</code>; that will allow us to refactor our arrow-key-handling into the <code>Player</code> class. Let's handle this first, since it's the easiest part.</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Player</span><span class="p">(</span><span class="n">Entity</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">)))</span>
-
-    <span class="k">def</span> <span class="nf">process_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key_pressed</span><span class="p">):</span>
-        <span class="n">dc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
-            <span class="n">dc</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
-            <span class="n">dc</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
-            <span class="n">dc</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
-            <span class="n">dc</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="mi">1</span>
-</pre></div>
-
-
-<p>Pretty straight-forward; our main loop today would call <code>player.process_input</code>. But we'll leave that for now and move into the keyboard system.</p>
-<h1>The Keyboard Input System</h1>
-<p>The keyboard input system is pretty simple: keep track of keys pressed, and in <code>update</code>, call a keypress callback on every entity's <code>KeyboardInputComponent</code>.  That gives us something like this:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">KeyboardInputSystem</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Handles keyboard input. Given an entity with a KeyboardInputComponent,</span>
-<span class="sd">    this system calls the on_keydown callback when a key is pressed.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keys_pressed</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entities</span><span class="p">):</span>
-        <span class="n">current_keys_pressed</span> <span class="o">=</span> <span class="p">[]</span>
-
-        <span class="c1"># Check if there&#39;s input</span>
-        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;KEYDOWN&#39;</span><span class="p">:</span>
-                <span class="n">current_keys_pressed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">keychar</span><span class="p">)</span>
-
-        <span class="c1"># TODO: key_onpress, key_onrelease is now possible</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keys_pressed</span> <span class="o">=</span> <span class="n">current_keys_pressed</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys_pressed</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">KeyboardInputComponent</span><span class="p">):</span>
-                    <span class="n">ki</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">KeyboardInputComponent</span><span class="p">)</span>
-                    <span class="n">ki</span><span class="o">.</span><span class="n">on_keydown_callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys_pressed</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">get_all_keys_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-       <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys_pressed</span>
-</pre></div>
-
-
-<p>There's a subtlety here: in TDL, when you call <code>tdl.event.get()</code>, it actually <em>consumes</em> the events from the queue. That is, the events are processed and removed. calling <code>tdl.event.get</code> again will return nothing.</p>
-<p>For this reason, we have to keep the list of keys pressed in an internal array, so that callers can consume them however they want. (This also lets us expose events like <code>key_justpressed</code> and <code>key_released</code>, but don't need those yet.)</p>
-<p>The keyboard input component is straight-forward:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">KeyboardInputComponent</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Add this component to entities that need to track keyboard input.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on_keydown_callback</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;on_keypress_callback should accept an argument for the keys pressed.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">on_keydown_callback</span> <span class="o">=</span> <span class="n">on_keydown_callback</span>
-</pre></div>
-
-
-<p>With that in place, we can rewrite the main loop. We delete all references to keyboard processing, and add the keyboard system to the container. We want to write something like this:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># ...</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="n">KeyboardInputSystem</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="n">DisplaySystem</span><span class="p">(</span><span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">)))</span>
-        <span class="c1"># ...</span>
-
-    <span class="k">def</span> <span class="nf">core_game_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_over</span><span class="p">:</span>
-            <span class="c1"># Game over?</span>
-            <span class="c1"># Did time pass?</span>
-</pre></div>
-
-
-<p>We can't easily check if the game is over and terminate, nor can we check if time passed (and process the loop differently in this case). To handle these two cases, we need to keep references to the display and keyboard input systems. Not quite elegant, but it'll do.  </p>
-<p>When we add in in the <code>Player</code> instance, and keep track of game state with a <code>game_over</code> variable, our main loop then looks like this:</p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="c1"># import ../*</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;..&#39;</span><span class="p">))</span>
-
-<span class="kn">from</span> <span class="nn">fantastic_couscous.ecs.container</span> <span class="kn">import</span> <span class="n">Container</span>
-<span class="kn">from</span> <span class="nn">fantastic_couscous.ecs.systems.display_system</span> <span class="kn">import</span> <span class="n">DisplaySystem</span>
-<span class="kn">from</span> <span class="nn">fantastic_couscous.ecs.systems.keyboard_input_system</span> <span class="kn">import</span> <span class="n">KeyboardInputSystem</span>
-
-<span class="kn">from</span> <span class="nn">player</span> <span class="kn">import</span> <span class="n">Player</span>
-<span class="kn">import</span> <span class="nn">tdl</span>
-
-<span class="k">class</span> <span class="nc">Main</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">player</span> <span class="o">=</span> <span class="n">Player</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">game_over</span> <span class="o">=</span> <span class="bp">False</span>
-
-        <span class="c1"># We need a reference so we can draw even if there&#39;s no input (realtime)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">display_system</span> <span class="o">=</span> <span class="n">DisplaySystem</span><span class="p">(</span><span class="n">tdl</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span>
-        <span class="c1"># Needed so we can detect game-over and tell if time passed</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keyboard_input_system</span> <span class="o">=</span> <span class="n">KeyboardInputSystem</span><span class="p">()</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span> <span class="o">=</span> <span class="n">Container</span><span class="p">()</span>
-
-        <span class="c1"># Order matters. Draw last.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keyboard_input_system</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">add_system</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">display_system</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">add_entity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">player</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">core_game_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-
-        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_over</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">check_for_game_over</span><span class="p">()</span>
-            <span class="n">time_passed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_if_time_passed</span><span class="p">()</span>
-
-            <span class="k">if</span> <span class="n">time_passed</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">keyboard_input_system</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">display_system</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">container</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">check_for_game_over</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">keys_pressed</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keyboard_input_system</span><span class="o">.</span><span class="n">get_all_keys_pressed</span><span class="p">()</span> <span class="k">if</span> <span class="n">e</span> <span class="o">==</span> <span class="s1">&#39;ESCAPE&#39;</span> <span class="ow">or</span> <span class="n">e</span> <span class="o">==</span> <span class="s1">&#39;q&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">keys_pressed</span><span class="p">:</span> <span class="c1"># len &gt; 0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">game_over</span> <span class="o">=</span> <span class="bp">True</span>
-
-    <span class="k">def</span> <span class="nf">check_if_time_passed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">all_keys_pressed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keyboard_input_system</span><span class="o">.</span><span class="n">get_all_keys_pressed</span><span class="p">()</span>
-
-        <span class="n">keys_pressed</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">all_keys_pressed</span>
-            <span class="k">if</span> <span class="n">e</span> <span class="o">==</span> <span class="s1">&#39;UP&#39;</span> <span class="ow">or</span> <span class="n">e</span> <span class="o">==</span> <span class="s1">&#39;DOWN&#39;</span> <span class="ow">or</span> <span class="n">e</span> <span class="o">==</span> <span class="s1">&#39;LEFT&#39;</span> <span class="ow">or</span> <span class="n">e</span> <span class="o">==</span> <span class="s1">&#39;RIGHT&#39;</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="n">keys_pressed</span> <span class="c1"># len &gt; 0</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">Main</span><span class="p">()</span><span class="o">.</span><span class="n">core_game_loop</span><span class="p">()</span>
-</pre></div>
-
-
-<p>No surprises here:</p>
-<ul>
-<li>The initializer keeps track of our display/input systems</li>
-<li>The core game loop calls <code>update</code> on our container, or selectively updates just the display/input systems</li>
-<li>We have a <code>game_over</code> variable and a <code>check_for_game_over</code> method that updates the value to <code>True</code> if the user ever clicks <code>ESCAPE</code>/<code>q</code></li>
-<li>We have a placeholder method to check if time passed by checking if the player moved (user pressed an arrow key)</li>
-</ul>
-<p>The best part is that we can test most of the main code (from our keyboard input system).</p>
-<h1>Testing</h1>
-<h2>KeyboardInputComponent</h2>
-<p>Tests are pretty straight-forward. Let's start with the easiest, our <code>KeyboardInputComponent</code>: all we can test is that the callback accepts a list of keys pressed and logs them:</p>
-<div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">fantastic_couscous.ecs.components.keyboard_input_component</span> <span class="kn">import</span> <span class="n">KeyboardInputComponent</span>
-
-<span class="kn">import</span> <span class="nn">pytest</span>
-
-<span class="k">class</span> <span class="nc">TestKeyboardInputComponent</span><span class="p">:</span>
-
-    <span class="k">def</span> <span class="nf">test_init_takes_callback_which_accepts_keys_pressed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">pressed</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="n">KeyboardInputComponent</span><span class="p">(</span><span class="k">lambda</span> <span class="n">keys</span><span class="p">:</span> <span class="n">pressed</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
-        <span class="n">k</span><span class="o">.</span><span class="n">on_keydown_callback</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span>
-
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pressed</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
-        <span class="k">assert</span> <span class="s2">&quot;a&quot;</span> <span class="ow">in</span> <span class="n">pressed</span>
-        <span class="k">assert</span> <span class="s2">&quot;b&quot;</span> <span class="ow">in</span> <span class="n">pressed</span>
-</pre></div>
-
-
-<h2>KeyboardInputSystem</h2>
-<p>For the keyboard input system, we want to test a couple of things:</p>
-<ul>
-<li><code>get_all_keys_pressed</code> returns keys after we call <code>update</code>.</li>
-<li><code>update</code> calls <code>on_keydown</code> callbacks on all entities</li>
-</ul>
-<p>To achieve both, like our <code>DisplaySystem</code> test, we need to mock TDL. tdl.event.get()` should return a list of keys pressed (even if hard-coded). We can achieve it with something like this:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GetEvent</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;LEFT&quot;</span><span class="p">]</span>
-
-<span class="n">event</span> <span class="o">=</span> <span class="n">GetEvent</span><span class="p">()</span>
-</pre></div>
-
-
-<p>With this, calling <code>tdl.event</code> returns an instance of <code>GetEvent</code>, which returns <code>["LEFT"]</code>. But if we try to use this in a test, we run into an error; <code>KeyboardInputSystem</code> has this code in <code>update</code>:</p>
-<div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">tdl</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;KEYDOWN&#39;</span><span class="p">:</span>
-        <span class="c1"># key pressed</span>
-</pre></div>
-
-
-<p>We need to return a struct with a <code>type</code> and a <code>keychar</code>, like so:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">GetEvent</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">KeyEvent</span><span class="p">(</span><span class="s2">&quot;LEFT&quot;</span><span class="p">)]</span>
-
-<span class="k">class</span> <span class="nc">KeyEvent</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">event_type</span><span class="o">=</span><span class="s2">&quot;KEYDOWN&quot;</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keychar</span> <span class="o">=</span> <span class="n">key</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">event_type</span>
-
-<span class="n">event</span> <span class="o">=</span> <span class="n">GetEvent</span><span class="p">()</span>
-</pre></div>
-
-
-<p>With this, we can write our two tests:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">TestKeyboardInputSystem</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">test_get_all_keys_pressed_returns_keys_from_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">kis</span> <span class="o">=</span> <span class="n">KeyboardInputSystem</span><span class="p">()</span>
-        <span class="k">assert</span> <span class="n">kis</span><span class="o">.</span><span class="n">get_all_keys_pressed</span><span class="p">()</span> <span class="o">==</span> <span class="p">[]</span>
-
-        <span class="c1"># tdl.event.get() returns [&quot;LEFT&quot;]</span>
-        <span class="n">kis</span><span class="o">.</span><span class="n">update</span><span class="p">([])</span>
-
-        <span class="k">assert</span> <span class="n">kis</span><span class="o">.</span><span class="n">get_all_keys_pressed</span><span class="p">()</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;LEFT&quot;</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">test_update_calls_keydown_callback_on_all_entities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">pressed</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="n">KeyboardInputComponent</span><span class="p">(</span><span class="k">lambda</span> <span class="n">keys</span><span class="p">:</span> <span class="n">pressed</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
-        <span class="n">e</span> <span class="o">=</span> <span class="n">Entity</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
-
-        <span class="n">kis</span> <span class="o">=</span> <span class="n">KeyboardInputSystem</span><span class="p">()</span>
-        <span class="n">kis</span><span class="o">.</span><span class="n">update</span><span class="p">([</span><span class="n">e</span><span class="p">])</span>
-
-        <span class="c1"># tdl.event.get() returns [&quot;LEFT&quot;]        </span>
-        <span class="k">assert</span> <span class="s2">&quot;LEFT&quot;</span> <span class="ow">in</span> <span class="n">pressed</span>
-</pre></div>
-
-
-<h2>Player</h2>
-<p>The final piece is to test the <code>Player</code> class. We have one major method to test: the key-processing one:</p>
-<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Player</span><span class="p">(</span><span class="n">Entity</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">DisplayComponent</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">,</span> <span class="mh">0xFFFFFF</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
-            <span class="n">KeyboardInputComponent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_process_input</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_process_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys_pressed</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">key_pressed</span> <span class="ow">in</span> <span class="n">keys_pressed</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;UP&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;DOWN&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;LEFT&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">key_pressed</span> <span class="o">==</span> <span class="s2">&quot;RIGHT&quot;</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span><span class="p">(</span><span class="s2">&quot;You pressed {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key_pressed</span><span class="p">))</span>
-</pre></div>
-
-
-<p>We can also test that the constructor sets a <code>DisplayComponent</code> and <code>KeyboardInputComponent</code>. That's simple enough, so we leave that as an exercise to the reader.</p>
-<p>While Python discourages calling "private" methods (with leading underscores), that's really the only easy way to test our code, so we're going to call it. We want to test processing for all four arrow keys:</p>
-<div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_process_input_moves_display_component_for_arrow_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="n">Player</span><span class="p">()</span>
-    <span class="n">display</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DisplayComponent</span><span class="p">)</span>
-    <span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span> <span class="o">=</span> <span class="n">display</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">display</span><span class="o">.</span><span class="n">y</span>
-
-    <span class="n">p</span><span class="o">.</span><span class="n">_process_input</span><span class="p">([</span><span class="s2">&quot;UP&quot;</span><span class="p">])</span>
-    <span class="k">assert</span> <span class="n">display</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="n">old_x</span>
-    <span class="k">assert</span> <span class="n">display</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="n">old_y</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span> <span class="o">=</span> <span class="n">display</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">display</span><span class="o">.</span><span class="n">y</span>
-
-    <span class="n">p</span><span class="o">.</span><span class="n">_process_input</span><span class="p">([</span><span class="s2">&quot;DOWN&quot;</span><span class="p">])</span>
-    <span class="k">assert</span> <span class="n">display</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="n">old_x</span>
-    <span class="k">assert</span> <span class="n">display</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="n">old_y</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span> <span class="o">=</span> <span class="n">display</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">display</span><span class="o">.</span><span class="n">y</span>
-
-    <span class="n">p</span><span class="o">.</span><span class="n">_process_input</span><span class="p">([</span><span class="s2">&quot;LEFT&quot;</span><span class="p">])</span>
-    <span class="k">assert</span> <span class="n">display</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="n">old_x</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="k">assert</span> <span class="n">display</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="n">old_y</span>
-    <span class="n">old_x</span><span class="p">,</span> <span class="n">old_y</span> <span class="o">=</span> <span class="n">display</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">display</span><span class="o">.</span><span class="n">y</span>
-
-    <span class="n">p</span><span class="o">.</span><span class="n">_process_input</span><span class="p">([</span><span class="s2">&quot;RIGHT&quot;</span><span class="p">])</span>
-    <span class="k">assert</span> <span class="n">display</span><span class="o">.</span><span class="n">x</span> <span class="o">==</span> <span class="n">old_x</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="k">assert</span> <span class="n">display</span><span class="o">.</span><span class="n">y</span> <span class="o">==</span> <span class="n">old_y</span>
-</pre></div>
-
-
-<p>Pretty simple. With this, we have a mostly complete refactored loop.</p>
-<p>In part five, we'll forage onward and add some new functionality to our roguelike (solid walls that we can't walk through).</p>
-<p>Meanwhile, I'll also clean up the <code>main.py</code> file and extract out some of the dependencies on the various systems so we can test <code>check_for_game_over</code> and <code>check_if_time_passed</code>. While having 100% testable code is an ideal to strive for, the practical reality is that it's not always worth it to write complex/flaky tests to get there.</p>
-<p>In this case, we have two methods that are relatively easy to make testable by extracting dependencies, so it's worth it.</p>                </article>
-            </aside><!-- /#featured -->
-                <section id="content" class="body">
-                    <h1>Other articles</h1>
-                    <hr />
-                    <ol id="posts-list" class="hfeed">
+</footer><!-- /.post-info -->                <p>This is the fourth part of our series for creating a Python roguelike with TDL and an ECS. In <a href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-3.html">part three</a>, we refactored out a display system that handles drawing our player on-screen. We still have a lot of untestable keyboard input code in our <code>main.py</code> file, so we're …</p>
+                <a class="readmore" href="https://nightblade9.github.io/python-zone/2018/creating-a-roguelike-in-python-tdl-part-4.html">read more</a>
+                </div><!-- /.entry-content -->
+            </article></li>
 
             <li><article class="hentry">
                 <header>

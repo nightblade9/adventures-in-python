@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+        <meta charset="utf-8" />
+        <title>Python's Interactive REPL</title>
+        <link rel="stylesheet" href="https://nightblade9.github.io/python-zone/theme/css/main.css" />
+        <link href="https://nightblade9.github.io/python-zone/atom.xml" type="application/atom+xml" rel="alternate" title="Python Zone Atom Feed" />
+
+        <!--[if IE]>
+            <script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+</head>
+
+<body id="index" class="home">
+        <header id="banner" class="body">
+                <h1><a href="https://nightblade9.github.io/python-zone/">Python Zone </a></h1>
+                <nav><ul>
+                    <li><a href="https://nightblade9.github.io/python-zone/pages/about.html">About</a></li>
+                    <li class="active"><a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a></li>
+                    <li><a href="https://twitter.com/nightblade99">Twitter</a></li>
+                </ul></nav>
+        </header><!-- /#banner -->
+<section id="content" class="body">
+  <article>
+    <header>
+      <h1 class="entry-title">
+        <a href="https://nightblade9.github.io/python-zone/2018/pythons-interactive-repl.html" rel="bookmark"
+           title="Permalink to Python's Interactive REPL">Python's Interactive REPL</a></h1>
+    </header>
+
+    <div class="entry-content">
+<footer class="post-info">
+        <abbr class="published" title="2018-04-17T00:00:00-04:00">
+                Published: Tue 17 April 2018
+        </abbr>
+
+        <address class="vcard author">
+                By                         <a class="url fn" href="https://nightblade9.github.io/python-zone/author/nightblade.html">Nightblade</a>
+        </address>
+<p>In <a href="https://nightblade9.github.io/python-zone/category/posts.html">Posts</a>.</p>
+
+</footer><!-- /.post-info -->      <p>Did you ever write a bunch of Python code, save it into a file, run it, and wish you could somehow import all that content into a REPL session so you can poke it?</p>
+<p>Turns out you can. <a href="https://realpython.com/python-json/">This long, thorough article about JSON in Python</a> contains a real nugget of wisdom in the middle:</p>
+<blockquote>
+<p><strong>What’s interactive mode?</strong> Ah, I thought you’d never ask! You know how you’re always jumping back and forth between the your editor and the terminal? Well, us sneaky Pythoneers use the -i interactive flag when we run the script. This is a great little trick for testing code because it runs the script and then opens up an interactive command prompt with access to all the data from the script!</p>
+</blockquote>
+<p>Let's say you have a file called <code>cows.py</code> that looks like this:</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Cow</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;{} says Moo!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">goldie</span> <span class="o">=</span> <span class="n">Cow</span><span class="p">(</span><span class="s2">&quot;Goldie&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>If you run <code>python -i cows.py</code> from your terminal, not will see <code>Goldie says Moo!</code>, but you can reference the <code>goldie</code> variable:</p>
+<div class="highlight"><pre><span></span>Goldie says Moo!
+&gt;&gt;&gt; goldie
+&lt;__main__.Cow object at 0x02D1F510&gt;
+&gt;&gt;&gt;
+</pre></div>
+
+
+<p>This is a really excellent way to combine the benefit of writing your code with an IDE and saving complex statements, with being able to quickly interact with it.</p>
+    </div><!-- /.entry-content -->
+
+  </article>
+</section>
+        <section id="extras" class="body">
+                <div class="blogroll">
+                        <h2>links</h2>
+                        <ul>
+                            <li><a href="https://github.com/nightblade9">Profile</a></li>
+                        </ul>
+                </div><!-- /.blogroll -->
+                <div class="social">
+                        <h2>social</h2>
+                        <ul>
+                            <li><a href="https://nightblade9.github.io/python-zone/atom.xml" type="application/atom+xml" rel="alternate">atom feed</a></li>
+
+                            <li><a href="https://twitter.com/nightblade99">Twitter</a></li>
+                        </ul>
+                </div><!-- /.social -->
+        </section><!-- /#extras -->
+
+        <footer id="contentinfo" class="body">
+                <address id="about" class="vcard body">
+                Copyright &copy; Nightblade, 2018+
+                </address><!-- /#about -->
+                
+        </footer><!-- /#contentinfo -->
+
+</body>
+</html>
